@@ -1,0 +1,39 @@
+import type { NextConfig } from "next";
+import fs from "fs";
+import path from "path";
+
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+const nextConfig: NextConfig = withBundleAnalyzer({
+  env: {
+    // Matches the behavior of `sanity dev` which sets styled-components to use the fastest way of inserting CSS rules in both dev and production. It's default behavior is to disable it in dev mode.
+    SC_DISABLE_SPEEDY: "false",
+  },
+  images: {
+    remotePatterns: [{
+      protocol: 'https',
+      hostname: 'cdn.sanity.io'
+    }],
+  },
+  async redirects() {
+    const redirectsPath = path.join(__dirname, "redirects.json");
+    let redirectMap: Record<string, string> = {};
+
+    try {
+      const json = fs.readFileSync(redirectsPath, "utf-8");
+      redirectMap = JSON.parse(json);
+    } catch (err) {
+      console.warn("Could not load redirects.json:", err);
+    }
+
+    return Object.entries(redirectMap).map(([source, destination]) => ({
+      source,
+      destination,
+      permanent: true,
+    }));
+  },
+});
+
+export default nextConfig;
