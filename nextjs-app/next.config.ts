@@ -17,23 +17,6 @@ const nextConfig: NextConfig = withBundleAnalyzer({
       hostname: 'cdn.sanity.io'
     }],
   },
-  async redirects() {
-    const redirectsPath = path.join(__dirname, "redirects.json");
-    let redirectMap: Record<string, string> = {};
-
-    try {
-      const json = fs.readFileSync(redirectsPath, "utf-8");
-      redirectMap = JSON.parse(json);
-    } catch (err) {
-      console.warn("Could not load redirects.json:", err);
-    }
-
-    return Object.entries(redirectMap).map(([source, destination]) => ({
-      source,
-      destination,
-      permanent: true,
-    }));
-  },
 });
 
 export default nextConfig;
