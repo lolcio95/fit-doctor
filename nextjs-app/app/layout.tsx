@@ -2,6 +2,7 @@ import NextScript from "next/script";
 import "./globals.css";
 
 import { Manrope } from "next/font/google";
+import AuthProvider from "./context/AuthProvider";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -31,7 +32,7 @@ export default async function RootLayout({
           ></NextScript>
         )}
       </head>
-      {children}
+      <AuthProvider>{children}</AuthProvider>
     </html>
   );
 }
