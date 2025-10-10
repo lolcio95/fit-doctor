@@ -617,6 +617,20 @@ export const getNavbarQuery = defineQuery(`
   }
 `);
 
+export const getNavbar = defineQuery(`
+  *[_type == "navbar"][0] {
+    ...,
+    logo {
+      ...,
+      ${makeImageFragment("image")},
+    },
+    menuItems[] {
+      ...,
+      ${link},
+    }
+  }
+`)
+
 export const getFooterQuery = defineQuery(`
   *[_type == "footer"][0] {
     ...,

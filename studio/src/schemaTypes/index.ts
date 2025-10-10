@@ -62,6 +62,7 @@ import { whyUs } from './sections/whyUs'
 import { listOfTwoColumns } from './sections/listOfTwoColumns'
 import { seoSettings } from './GlobalSettings/SEO/seoSettings'
 import { redirects } from './GlobalSettings/redirects/redirects'
+import { navbar } from './GlobalSettings/navbar/navbar'
 
 // Export an array of all the schema types.  This is used in the Sanity Studio configuration. https://www.sanity.io/docs/schema-types
 
@@ -98,6 +99,7 @@ export const schemaTypes = [
   //Header
   header,
   headerMenuItem,
+  navbar,
   //global settings
   articlesSettings,
   seoSettings,
