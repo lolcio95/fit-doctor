@@ -39,7 +39,13 @@ export function Navigation({ logo, menuItems }: NavigationProps) {
             <div className="flex items-center gap-6 ml-auto">
               {menuItems.map(
                 (item) =>
-                  item?.label && <Button key={item._key}>{item.label}</Button>
+                  item?.label && (
+                    <ButtonLink
+                      key={item._key}
+                      text={item.label}
+                      href={item.resource?.slug ?? "/"}
+                    />
+                  )
               )}
             </div>
           )}

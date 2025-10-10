@@ -2,7 +2,7 @@ import NextAuth, { SessionStrategy } from 'next-auth';
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-export const authOptions = {
+const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.NEXT_PUBLIC_AUTH_GOOGLE_CLIENT_ID!,
