@@ -102,7 +102,16 @@ export default {
           900: "#183122",
           950: "#14211a",
         },
-        background: 'hsl(var(--background))',
+        background: {
+          primary: "#0f0f0f",
+          secondary: "#1a1a1a",
+          tertiary: "#02b360",
+        },
+        color: {
+          primary: "#ffffff",
+          secondary: "#02b360",
+          tertiary: "#cccccc",
+        },
         foreground: 'hsl(var(--foreground))',
         card: {
           DEFAULT: 'hsl(var(--card))',
@@ -111,14 +120,6 @@ export default {
         popover: {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))'
-        },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
