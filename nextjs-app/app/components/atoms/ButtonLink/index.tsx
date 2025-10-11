@@ -12,6 +12,9 @@ interface ButtonLinkProps extends BaseLinkProps {
   size?: ButtonSize;
   icon?: React.ReactNode;
   iconPlacement?: "left" | "right";
+  onClick?: (
+    e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
+  ) => void;
 }
 
 export const ButtonLink = ({
@@ -27,7 +30,17 @@ export const ButtonLink = ({
 }: ButtonLinkProps) => {
   return (
     <BaseLink {...props} className={linkClassName} link={link}>
-      <Button variant={variant} asChild size={size} className={className}>
+      <Button
+        onClick={(
+          e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>
+        ) => {
+          props.onClick?.(e);
+        }}
+        variant={variant}
+        asChild
+        size={size}
+        className={className}
+      >
         <span>
           {icon && iconPlacement === "left" && icon}
           {link?.label ?? text}
