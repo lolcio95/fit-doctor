@@ -39,6 +39,375 @@ export type SanityImageDimensions = {
   aspectRatio?: number
 }
 
+export type Geopoint = {
+  _type: 'geopoint'
+  lat?: number
+  lng?: number
+  alt?: number
+}
+
+export type BigImage = {
+  _type: 'bigImage'
+  backgroundColor?: SimplerColor
+  title?: string
+  image?: Media
+}
+
+export type Testimonials = {
+  _type: 'testimonials'
+  backgroundColor?: SimplerColor
+  testimonials?: Array<{
+    content?: RichText
+    person?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'person'
+    }
+    _type: 'testimonial'
+    _key: string
+  }>
+}
+
+export type MainHero = {
+  _type: 'mainHero'
+  backgroundColor?: SimplerColor
+  title?: RichText
+  description?: RichText
+  type?: 'image' | 'video'
+  image?: Media
+  videoId?: string
+  buttons?: Array<{
+    type?: 'outline' | 'fill'
+    link?: LabeledLink
+    _type: 'buttons'
+    _key: string
+  }>
+}
+
+export type Sections = Array<
+  | ({
+      _key: string
+    } & SectionRichText)
+  | ({
+      _key: string
+    } & MainHero)
+  | ({
+      _key: string
+    } & Testimonials)
+  | ({
+      _key: string
+    } & BigImage)
+  | ({
+      _key: string
+    } & Newsletter)
+  | ({
+      _key: string
+    } & ListOfArticles)
+>
+
+export type Redirects = {
+  _id: string
+  _type: 'redirects'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  redirects?: Array<{
+    sourceSlug?: Slug
+    resource?:
+      | {
+          _ref: string
+          _type: 'reference'
+          _weak?: boolean
+          [internalGroqTypeReferenceTo]?: 'page'
+        }
+      | {
+          _ref: string
+          _type: 'reference'
+          _weak?: boolean
+          [internalGroqTypeReferenceTo]?: 'article'
+        }
+    _type: 'redirect'
+    _key: string
+  }>
+  globalSetting?: boolean
+  published?: string
+}
+
+export type SeoSettings = {
+  _type: 'seoSettings'
+  title?: string
+  description?: string
+  ogTitle?: string
+  ogDescription?: string
+  ogImage?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+    }
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  ogUrl?: string
+}
+
+export type ArticlesSettings = {
+  _id: string
+  _type: 'articlesSettings'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  listOfArticles?: ListOfArticles
+  newsletter?: Newsletter
+  globalSetting?: boolean
+  published?: string
+}
+
+export type Navbar = {
+  _id: string
+  _type: 'navbar'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  logo?: SimpleImage
+  menuItems?: Array<
+    {
+      _key: string
+    } & LabeledLink
+  >
+  globalSetting?: boolean
+  published?: string
+}
+
+export type MenuItem = Array<{
+  hasSubmenu?: boolean
+  title?: string
+  link?: LabeledLink
+  submenu?: Array<{
+    link?: LabeledLink
+    _key: string
+  }>
+  _key: string
+}>
+
+export type Header = {
+  _id: string
+  _type: 'header'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  menuItems?: MenuItem
+  buttons?: Array<{
+    type?: 'outline' | 'fill'
+    link?: LabeledLink
+    _type: 'buttons'
+    _key: string
+  }>
+  logo?: SimpleImage
+  globalSetting?: boolean
+  published?: string
+}
+
+export type SocialMedia = {
+  _id: string
+  _type: 'socialMedia'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  name?: string
+  image?: SimpleImage
+  socialsUrl?: string
+  globalSetting?: boolean
+  published?: string
+}
+
+export type FooterMenuItem = Array<{
+  title?: string
+  submenu?: Array<{
+    type?: 'link' | 'textContent'
+    link?: LabeledLink
+    textContent?: SimpleRichText
+    _key: string
+  }>
+  _key: string
+}>
+
+export type Footer = {
+  _id: string
+  _type: 'footer'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  footerMenuItems?: FooterMenuItem
+  logo?: SimpleImage
+  references?: Array<{
+    link?: LabeledLink
+    _key: string
+  }>
+  socials?: Array<{
+    _ref: string
+    _type: 'reference'
+    _weak?: boolean
+    _key: string
+    [internalGroqTypeReferenceTo]?: 'socialMedia'
+  }>
+  globalSetting?: boolean
+  published?: string
+}
+
+export type HubspotForm = {
+  _type: 'hubspotForm'
+  formId?: string
+}
+
+export type Video = {
+  _type: 'video'
+  videoType?: 'youtube' | 'hubspot'
+  videoId?: string
+  videoUrl?: string
+}
+
+export type SectionRichText = {
+  _type: 'sectionRichText'
+  richText?: Array<
+    | {
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: 'span'
+          _key: string
+        }>
+        style?:
+          | 'normal'
+          | 'h1'
+          | 'h2'
+          | 'h3'
+          | 'h4'
+          | 'paragraph'
+          | 'lead'
+          | 'large'
+          | 'small'
+          | 'blockquote'
+        listItem?: 'bullet' | 'number'
+        markDefs?: Array<
+          | ({
+              _key: string
+            } & SimplerColor)
+          | ({
+              _key: string
+            } & Link)
+        >
+        level?: number
+        _type: 'block'
+        _key: string
+      }
+    | ({
+        _key: string
+      } & SimpleImage)
+    | ({
+        _key: string
+      } & Table)
+    | ({
+        _key: string
+      } & Video)
+    | ({
+        _key: string
+      } & HubspotForm)
+  >
+  isNarrow?: boolean
+  withSpacing?: boolean
+  backgroundColor?: SimplerColor
+}
+
+export type SimpleRichText = {
+  _type: 'simpleRichText'
+  richText?: Array<{
+    children?: Array<{
+      marks?: Array<string>
+      text?: string
+      _type: 'span'
+      _key: string
+    }>
+    style?: 'normal' | 'paragraph' | 'lead' | 'large' | 'small'
+    listItem?: 'bullet' | 'number'
+    markDefs?: Array<
+      | ({
+          _key: string
+        } & SimplerColor)
+      | ({
+          _key: string
+        } & Link)
+    >
+    level?: number
+    _type: 'block'
+    _key: string
+  }>
+}
+
+export type Link = {
+  _type: 'link'
+  type?: 'internalLink' | 'externalUrl' | 'mediaLink' | 'sectionLink'
+  resource?:
+    | {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'page'
+      }
+    | {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'article'
+      }
+  url?: string
+  media?: {
+    asset?: {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+    }
+    media?: unknown
+    _type: 'mediaLink'
+  }
+  downloadType?: 'download' | 'openInNewTab'
+  section?: SectionLink
+}
+
+export type SectionLink = {
+  _type: 'sectionLink'
+  page?:
+    | {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'page'
+      }
+    | {
+        _ref: string
+        _type: 'reference'
+        _weak?: boolean
+        [internalGroqTypeReferenceTo]?: 'article'
+      }
+  sectionKey?: string
+}
+
+export type MediaLink = {
+  _type: 'mediaLink'
+  asset?: {
+    _ref: string
+    _type: 'reference'
+    _weak?: boolean
+    [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+  }
+  media?: unknown
+}
+
 export type SanityFileAsset = {
   _id: string
   _type: 'sanity.fileAsset'
@@ -61,173 +430,122 @@ export type SanityFileAsset = {
   source?: SanityAssetSourceData
 }
 
-export type Geopoint = {
-  _type: 'geopoint'
-  lat?: number
-  lng?: number
-  alt?: number
-}
-
-export type Tabs = {
-  _type: 'tabs'
-  tab?: Array<
-    {
-      _key: string
-    } & Tab
-  >
-}
-
-export type TwoColumns = {
-  _type: 'twoColumns'
-  text?: RichText
-  image?: Media
-  imagePosition?: 'left' | 'right'
-}
-
-export type Sections = Array<
-  | ({
-      _key: string
-    } & Tabs)
-  | ({
-      _key: string
-    } & TwoColumns)
->
-
-export type MenuItem = Array<{
-  title?: string
-  isDropdown?: boolean
-  link?: Link
-  submenu?: Array<{
-    title?: string
-    link?: Link
-    description?: string
-    _key: string
-  }>
-  _key: string
-}>
-
-export type Header = {
-  _id: string
-  _type: 'header'
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  menuItems?: MenuItem
-  buttons?: Array<{
-    text?: string
-    type?: 'outline' | 'fill'
-    link?: Link
-    image?: {
-      asset?: {
-        _ref: string
-        _type: 'reference'
-        _weak?: boolean
-        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
-      }
-      hotspot?: SanityImageHotspot
-      crop?: SanityImageCrop
-      _type: 'image'
-    }
-    _type: 'buttons'
-    _key: string
-  }>
-  logo?: {
-    asset?: {
+export type InternalLink =
+  | {
       _ref: string
       _type: 'reference'
       _weak?: boolean
-      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+      [internalGroqTypeReferenceTo]?: 'page'
     }
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: 'image'
-  }
-}
+  | {
+      _ref: string
+      _type: 'reference'
+      _weak?: boolean
+      [internalGroqTypeReferenceTo]?: 'article'
+    }
 
-export type SocialMedia = {
+export type ExternalUrl = string
+
+export type Article = {
   _id: string
-  _type: 'socialMedia'
+  _type: 'article'
   _createdAt: string
   _updatedAt: string
   _rev: string
-  socials?: Array<{
-    socialsType?: string
-    socialsImage?: {
-      asset?: {
-        _ref: string
-        _type: 'reference'
-        _weak?: boolean
-        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
-      }
-      hotspot?: SanityImageHotspot
-      crop?: SanityImageCrop
-      _type: 'image'
-    }
-    socialsUrl?: string
-    _type: 'social'
+  title?: string
+  slug?: Slug
+  coverImage?: Media
+  content?: ArticleRichText
+  sections?: Sections
+  withListOfArticles?: boolean
+  listOfArticles?: ListOfArticles
+  withCta?: boolean
+  withNewsletter?: boolean
+  newsletter?: Newsletter
+  date?: string
+  author?: {
+    _ref: string
+    _type: 'reference'
+    _weak?: boolean
+    [internalGroqTypeReferenceTo]?: 'author'
+  }
+  category?: {
+    _ref: string
+    _type: 'reference'
+    _weak?: boolean
+    [internalGroqTypeReferenceTo]?: 'articleCategory'
+  }
+  seo?: Seo
+}
+
+export type Newsletter = {
+  _type: 'newsletter'
+  backgroundColor?: SimplerColor
+  content?: RichText
+  formId?: string
+}
+
+export type ListOfArticles = {
+  _type: 'listOfArticles'
+  backgroundColor?: SimplerColor
+  title?: string
+  type?: 'recent' | 'custom' | 'all'
+  allArticlesButton?: LabeledLink
+  customArticles?: Array<{
+    _ref: string
+    _type: 'reference'
+    _weak?: boolean
     _key: string
+    [internalGroqTypeReferenceTo]?: 'article'
   }>
 }
 
-export type FooterMenuItem = Array<{
-  title?: string
-  submenu?: Array<{
-    title?: string
-    link?: Link
-    _key: string
-  }>
-  _key: string
-}>
-
-export type Footer = {
-  _id: string
-  _type: 'footer'
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  footerMenuItems?: FooterMenuItem
-  latestArticles?: string
-  contact?: {
-    email?: string
-    phone?: string
-    socials?: Array<{
-      type?: string
-      socialsValue?: string
-      _type: 'social'
-      _key: string
-    }>
-  }
-  references?: Array<{
-    title?: string
-    link?: Link
-    _key: string
-  }>
-  location?: {
-    title?: string
-    address?: string
-    logo?: {
-      asset?: {
-        _ref: string
-        _type: 'reference'
-        _weak?: boolean
-        [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+export type ArticleRichText = {
+  _type: 'articleRichText'
+  richText?: Array<
+    | {
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: 'span'
+          _key: string
+        }>
+        style?:
+          | 'normal'
+          | 'h1'
+          | 'h2'
+          | 'h3'
+          | 'h4'
+          | 'paragraph'
+          | 'lead'
+          | 'large'
+          | 'small'
+          | 'blockquote'
+        listItem?: 'bullet' | 'number'
+        markDefs?: Array<
+          | ({
+              _key: string
+            } & SimplerColor)
+          | ({
+              _key: string
+            } & Link)
+        >
+        level?: number
+        _type: 'block'
+        _key: string
       }
-      hotspot?: SanityImageHotspot
-      crop?: SanityImageCrop
-      _type: 'image'
-    }
-    url?: Link
-  }
-}
-
-export type Tab = {
-  _type: 'tab'
-  title?: string
-  subtitle?: string
-  sections?: Array<
-    {
-      _key: string
-    } & TwoColumns
+    | ({
+        _key: string
+      } & SimpleImage)
+    | ({
+        _key: string
+      } & Table)
+    | ({
+        _key: string
+      } & Video)
+    | ({
+        _key: string
+      } & HubspotForm)
   >
 }
 
@@ -240,6 +558,7 @@ export type Media = {
       _weak?: boolean
       [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
     }
+    media?: unknown
     hotspot?: SanityImageHotspot
     crop?: SanityImageCrop
     _type: 'image'
@@ -251,6 +570,7 @@ export type Media = {
       _weak?: boolean
       [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
     }
+    media?: unknown
     hotspot?: SanityImageHotspot
     crop?: SanityImageCrop
     _type: 'image'
@@ -258,8 +578,21 @@ export type Media = {
   altText?: string
 }
 
-export type RichText = {
-  _type: 'richText'
+export type Author = {
+  _id: string
+  _type: 'author'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  name?: string
+  picture?: SimpleImage
+  bio?: ParagraphWithDecoratorsRichText
+  withButton?: boolean
+  button?: LabeledLink
+}
+
+export type ParagraphWithDecoratorsRichText = {
+  _type: 'paragraphWithDecoratorsRichText'
   richText?: Array<{
     children?: Array<{
       marks?: Array<string>
@@ -267,23 +600,15 @@ export type RichText = {
       _type: 'span'
       _key: string
     }>
-    style?:
-      | 'h1'
-      | 'h2'
-      | 'h3'
-      | 'h4'
-      | 'h5'
-      | 'h6'
-      | 'large'
-      | 'medium'
-      | 'normal'
-      | 'small'
-      | 'tiny'
+    style?: 'normal'
     listItem?: 'bullet' | 'number'
     markDefs?: Array<
-      {
-        _key: string
-      } & SimplerColor
+      | ({
+          _key: string
+        } & SimplerColor)
+      | ({
+          _key: string
+        } & Link)
     >
     level?: number
     _type: 'block'
@@ -291,58 +616,66 @@ export type RichText = {
   }>
 }
 
-export type Link = {
-  _type: 'link'
-  type?: 'internal' | 'external' | 'media'
-  internalLink?: {
-    _ref: string
-    _type: 'reference'
-    _weak?: boolean
-    [internalGroqTypeReferenceTo]?: 'page'
-  }
-  external?: string
-  media?: {
-    asset?: {
-      _ref: string
-      _type: 'reference'
-      _weak?: boolean
-      [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
-    }
-    hotspot?: SanityImageHotspot
-    crop?: SanityImageCrop
-    _type: 'image'
+export type ArticleCategory = {
+  _id: string
+  _type: 'articleCategory'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  categoryName?: string
+}
+
+export type Advisor = {
+  _id: string
+  _type: 'advisor'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  firstName?: string
+  lastName?: string
+  picture?: SimpleImage
+  position?: string
+  languages?: string
+  bio?: RichText
+  button?: {
+    text?: string
+    calendlyUrl?: string
   }
 }
 
-export type Post = {
+export type Page = {
   _id: string
-  _type: 'post'
+  _type: 'page'
   _createdAt: string
   _updatedAt: string
   _rev: string
   title?: string
-  sections?: Sections
   slug?: Slug
-  excerpt?: string
-  coverImage?: {
+  sections?: Sections
+  seo?: Seo
+}
+
+export type Seo = {
+  _type: 'seo'
+  title?: string
+  description?: string
+  noIndex?: boolean
+  ogTitle?: string
+  ogDescription?: string
+  ogImage?: {
     asset?: {
       _ref: string
       _type: 'reference'
       _weak?: boolean
       [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
     }
+    media?: unknown
     hotspot?: SanityImageHotspot
     crop?: SanityImageCrop
-    alt?: string
     _type: 'image'
   }
-  date?: string
-  author?: {
-    _ref: string
-    _type: 'reference'
-    _weak?: boolean
-    [internalGroqTypeReferenceTo]?: 'person'
-  }
+  ogUrl?: string
+  canonicalUrl?: string
 }
 
 export type Person = {
@@ -353,18 +686,88 @@ export type Person = {
   _rev: string
   firstName?: string
   lastName?: string
-  picture?: {
+  picture?: SimpleImage
+  position?: string
+}
+
+export type SimpleImage = {
+  _type: 'simpleImage'
+  image?: {
     asset?: {
       _ref: string
       _type: 'reference'
       _weak?: boolean
       [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
     }
+    media?: unknown
     hotspot?: SanityImageHotspot
     crop?: SanityImageCrop
-    alt?: string
     _type: 'image'
   }
+  alt?: string
+  caption?: string
+}
+
+export type RichText = {
+  _type: 'richText'
+  richText?: Array<
+    | {
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: 'span'
+          _key: string
+        }>
+        style?:
+          | 'normal'
+          | 'h1'
+          | 'h2'
+          | 'h2alt'
+          | 'h3'
+          | 'h4'
+          | 'responsiveParagraph'
+          | 'paragraph'
+          | 'lead'
+          | 'large'
+          | 'small'
+          | 'blockquote'
+        listItem?: 'bullet' | 'number'
+        markDefs?: Array<
+          | ({
+              _key: string
+            } & SimplerColor)
+          | ({
+              _key: string
+            } & Link)
+        >
+        level?: number
+        _type: 'block'
+        _key: string
+      }
+    | ({
+        _key: string
+      } & SimpleImage)
+    | ({
+        _key: string
+      } & Table)
+    | ({
+        _key: string
+      } & Video)
+    | ({
+        _key: string
+      } & HubspotForm)
+  >
+}
+
+export type LabeledLink = {
+  _type: 'labeledLink'
+  label?: string
+  type?: 'internalLink' | 'externalUrl' | 'mediaLink' | 'sectionLink'
+  resource?: InternalLink
+  url?: ExternalUrl
+  media?: MediaLink
+  downloadType?: 'download' | 'openInNewTab'
+  section?: SectionLink
 }
 
 export type SanityImageCrop = {
@@ -424,23 +827,18 @@ export type SanityImageMetadata = {
   isOpaque?: boolean
 }
 
-export type Page = {
-  _id: string
-  _type: 'page'
-  _createdAt: string
-  _updatedAt: string
-  _rev: string
-  title?: string
-  slug?: Slug
-  seo?: Seo
+export type Table = {
+  _type: 'table'
+  rows?: Array<
+    {
+      _key: string
+    } & TableRow
+  >
 }
 
-export type Seo = {
-  _type: 'seo'
-  title?: string
-  description?: string
-  metaImage?: string
-  noIndex?: boolean
+export type TableRow = {
+  _type: 'tableRow'
+  cells?: Array<string>
 }
 
 export type HighlightColor = {
@@ -615,29 +1013,52 @@ export type AllSanitySchemaTypes =
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
-  | SanityFileAsset
   | Geopoint
-  | Tabs
-  | TwoColumns
+  | BigImage
+  | Testimonials
+  | MainHero
   | Sections
+  | Redirects
+  | SeoSettings
+  | ArticlesSettings
+  | Navbar
   | MenuItem
   | Header
   | SocialMedia
   | FooterMenuItem
   | Footer
-  | Tab
-  | Media
-  | RichText
+  | HubspotForm
+  | Video
+  | SectionRichText
+  | SimpleRichText
   | Link
-  | Post
+  | SectionLink
+  | MediaLink
+  | SanityFileAsset
+  | InternalLink
+  | ExternalUrl
+  | Article
+  | Newsletter
+  | ListOfArticles
+  | ArticleRichText
+  | Media
+  | Author
+  | ParagraphWithDecoratorsRichText
+  | ArticleCategory
+  | Advisor
+  | Page
+  | Seo
   | Person
+  | SimpleImage
+  | RichText
+  | LabeledLink
   | SanityImageCrop
   | SanityImageHotspot
   | SanityImageAsset
   | SanityAssetSourceData
   | SanityImageMetadata
-  | Page
-  | Seo
+  | Table
+  | TableRow
   | HighlightColor
   | TextColor
   | SimplerColor

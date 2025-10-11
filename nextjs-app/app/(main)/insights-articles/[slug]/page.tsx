@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { sanityFetch } from "@/sanity/lib/live";
 import { articleQuery, articlePagesSlugs } from "@/sanity/lib/queries";
 import { ListOfArticles } from "@/app/components/organisms/ListOfArticles";
-import { CTA } from "@/app/components/organisms/CTA";
 import { Newsletter } from "@/app/components/organisms/Newsletter";
 import { ArticleContent } from "./components/ArticleContent";
 import { fetchMetadata } from "@/app/utils/fetchMetadata";
@@ -87,9 +86,6 @@ export default async function ArticlePage(props: Props) {
               : defaultListOfArticles
           }
         />
-      )}
-      {(cta || defaultCta) && (
-        <CTA block={withCta && !!cta ? cta : defaultCta} />
       )}
       {(newsletter || defaultNewsletter) && (
         <Newsletter

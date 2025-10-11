@@ -16,12 +16,6 @@ export const articlesSettings = defineType({
       validation: (rule) => rule.required(),
     },
     {
-      name: 'cta',
-      title: 'CTA',
-      type: 'cta',
-      validation: (rule) => rule.required(),
-    },
-    {
       name: 'newsletter',
       title: 'Newsletter',
       type: 'newsletter',
