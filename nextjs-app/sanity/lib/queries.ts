@@ -88,89 +88,6 @@ const mainHeroSection = `
   }
 `;
 
-const ctaSection = `
-  _type == "cta" => {
-    ...,
-    button {
-      ...,
-      ${link},
-    },
-    ${makeRichTextFragment("text")}
-  }
-`;
-
-const ethosSection = `
-  _type == "ethos" => {
-    ...,
-    button {
-      ...,
-      ${link},
-    },
-    ${makeRichTextFragment("content")},
-    person -> {
-      ...,
-      picture {
-       ...,
-       ${makeImageFragment("image")},
-      },
-    }
-  }
-`;
-
-const featuresWithCardsSection = `
-  _type == "featuresWithCards" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    cards [] {
-      ...,
-      icon {
-        ...,
-        ${makeImageFragment("image")},
-      },
-      ${makeRichTextFragment("content")},
-    },
-    button {
-      ...,
-      ${link},
-    }
-  }
-`;
-
-const secondaryHero = `
-  _type == "secondaryHero" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    logo {
-      ...,
-      ${makeImageFragment("image")},
-    },
-    button {
-      ...,
-      ${link},
-    },
-  }
-`;
-
-const downloadCardsSection = `
-  _type == "downloadCards" => {
-    ...,
-    cards[] {
-      ...,
-      ${makeRichTextFragment("content")},
-      image {
-        ...,
-        ${makeImageFragment("image")},
-      },
-      media {
-        asset -> {
-          url,
-          originalFilename,
-        }
-      }
-    }
-  }
-`;
-
 const testimonialsSection = `
   _type == "testimonials" => {
     ...,
@@ -188,148 +105,6 @@ const testimonialsSection = `
   }
 `;
 
-const techPartnersCardsSection = `
-  _type == "techPartnersCards" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    cards[] {
-      ...,
-      link {
-        ...,
-        ${link},
-      },
-      image {
-        ...,
-        ${makeImageFragment("image")},
-      },
-    }
-  }
-`;
-
-const featuresWithLogos = `
-  _type == "featuresWithLogos" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    features[] {
-      ...,
-      link {
-        ...,
-        ${link},
-      },
-      ${makeRichTextFragment("content")},
-    },
-    logos[] {
-      ...,
-      ${makeImageFragment("image")},
-    }
-  }
-`;
-
-const featuresWithIcons = `
-  _type == "featuresWithIcons" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    cards[] {
-      ...,
-      icon {
-        ...,
-        ${makeImageFragment("image")},
-      },
-      ${makeRichTextFragment("content")},
-    }
-  }
-`;
-
-const featuresWithImage = `
-  _type == "featuresWithImage" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    ${makeMediaImageFragment("image")},
-    cards[] {
-      ...,
-      icon {
-        ...,
-        ${makeImageFragment("image")},
-      },
-      ${makeRichTextFragment("content")},
-    }
-  }
-`;
-
-const teamsCardsSection = `
-  _type == "teamCards" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    cards[] {
-      ...,
-      person -> {
-        ...
-      },
-    }
-  }
-`;
-
-const contactTeam = `
-  _type == "contactTeam" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    advisors[] {
-      ...,
-      advisor -> {
-        ...,
-        picture {
-          ...,
-          ${makeImageFragment("image")},
-        },
-        ${makeRichTextFragment("bio")}
-      },
-    }
-  }
-`;
-
-const contactForm = `
-  _type == "contactForm" => {
-    ...,
-    ${makeRichTextFragment("content")}
-  }
-`;
-
-const teamIconsSection = `
-  _type == "teamIcons" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    button {
-      ...,
-      ${link},
-    },
-    teamIcons[] {
-      ...,
-      person -> {
-        ...,
-        picture {
-          ...,
-          ${makeImageFragment("image")},
-        },
-      },
-    }
-  }
-`;
-
-const logosSection = `
-  _type == "logos" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    button {
-      ...,
-      ${link},
-    },
-    logos[] {
-      ...,
-      ${makeImageFragment("image")},
-    }
-  }
-`;
-
 const articlesInfo = `
     "categories": *[_type == "articleCategory"]{
       categoryName
@@ -343,35 +118,6 @@ const articlesInfo = `
     }
 `;
 
-const iconHighlightsSection = `
-  _type == "iconHighlights" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    highlights[] {
-      ...,
-      icon {
-        ...,
-        ${makeImageFragment("image")},
-      },
-      ${makeRichTextFragment("description")},
-    }
-  }
-`;
-
-const twoColumnsSection = `
-  _type == "twoColumns" => {
-    ...,
-    ${makeRichTextFragment("text")},
-    ${makeMediaImageFragment("image")},
-  }
-`;
-
-const textColumnsGridSection = `
-  _type == "textColumnsGrid" => {
-    ...,
-    ${makeRichTextFragment("title")},
-  }
-`;
 
 const bigImageSection = `
   _type == "bigImage" => {
@@ -380,76 +126,10 @@ const bigImageSection = `
   }
 `;
 
-const tabbedListSection = `
-  _type == "tabbedList" => {
-    ...,
-    tabs [] {
-      ...,
-      tabIcon {
-        ...,
-        ${makeImageFragment("image")},
-      }
-    }
-  }
-`;
-
-const whyUsSection = `
-  _type == "whyUs" => {
-    ...,
-    image {
-      ...,
-      ${makeImageFragment("image")},
-    },
-    ${makeRichTextFragment("content")}
-  }
-`;
-
-const faqSection = `
-  _type == "faq" => {
-    ...,
-    ${makeRichTextFragment("content")},
-    groups [] {
-      ...,
-      items [] {
-        ...,
-        ${makeRichTextFragment("answer")}
-      }
-    }
-  }
-`;
-
 const newsletterSection = `
   _type == "newsletter" => {
     ...,
     ${makeRichTextFragment("content")},
-  }
-`;
-
-const statsSection = `
-  _type == "stats" => {
-    ...,
-    ${makeRichTextFragment("title")},
-  }
-`;
-
-const stepsSection = `
-  _type == "steps" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    items [] {
-      ...,
-      ${makeRichTextFragment("description")},
-    }
-  }
-`;
-
-const twoColumnsFeaturesSection = `
-  _type == "twoColumnsFeatures" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    ${makeRichTextFragment("leftColumn")},
-    ${makeRichTextFragment("rightColumn")},
-
   }
 `;
 
@@ -520,102 +200,17 @@ export const richText = `
   }
 `;
 
-const listOfTwoColumnsSection = `
-  _type == "listOfTwoColumns" => {
-    ...,
-    ${makeRichTextFragment("title")},
-    list[] {
-      ...,
-      ${makeRichTextFragment("text")},
-      button {
-        ...,
-        ${link},
-      },
-      ${makeMediaImageFragment("image")},
-    }
-  }
-`;
 
 const customSections = `
     ${mainHeroSection},
-    ${ctaSection},
-    ${ethosSection},
-    ${featuresWithCardsSection},
-    ${secondaryHero},
     ${testimonialsSection},
-    ${downloadCardsSection},
-    ${techPartnersCardsSection},
-    ${featuresWithLogos},
-    ${featuresWithIcons},
-    ${featuresWithImage},
-    ${teamsCardsSection},
-    ${contactTeam},
-    ${teamIconsSection},
-    ${logosSection},
     ${listOfArticlesSection},
-    ${twoColumnsSection},
-    ${tabbedListSection},
     ${bigImageSection},
-    ${iconHighlightsSection},
     ${articleRichText},
     ${sectionRichText},
     ${richText},
-    ${whyUsSection},
-    ${contactForm},
-    ${faqSection},
     ${newsletterSection},
-    ${statsSection},
-    ${stepsSection},
-    ${textColumnsGridSection},
-    ${twoColumnsFeaturesSection},
-    ${listOfTwoColumnsSection},
 `;
-
-const tabsSection = `
-  _type == "tabs" => {
-    ...,
-    tabs [] {
-      ...,
-      tabsSections [] {
-        ...,
-        ${twoColumnsSection},
-        ${faqSection},
-        ${listOfTwoColumnsSection},
-      }
-    }
-  }
-`;
-
-export const getNavbarQuery = defineQuery(`
-  *[_type == "header"][0] {
-    ...,
-    logo {
-      ...,
-      ${makeImageFragment("image")},
-    },
-    buttons[] {
-      ...,
-      link {
-        ...,
-        ${link},
-      }
-    },
-    menuItems[] {
-      ...,
-      link {
-        ...,
-        ${link},
-      },
-      submenu[] {
-        ...,
-        link {
-          ...,
-          ${link},
-        },
-      }
-    }
-  }
-`);
 
 export const getNavbar = defineQuery(`
   *[_type == "navbar"][0] {
@@ -684,7 +279,6 @@ export const getPageQuery = defineQuery(`
     sections [] {
       ...,
       ${customSections}
-      ${tabsSection}
     },
     seo,
   }
@@ -725,13 +319,6 @@ const articleSections = `
       }
     }
   },
-  cta {
-    ...,
-    button {
-      ...,
-      ${link},
-    }
-  },
 `;
 
 export const articleQuery = defineQuery(`
@@ -744,7 +331,6 @@ export const articleQuery = defineQuery(`
     sections[] {
       ...,
       ${customSections}
-      ${tabsSection}
     },
     date,
     seo,

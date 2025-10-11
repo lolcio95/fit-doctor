@@ -76,13 +76,6 @@ export const article = defineType({
       description:
         'Decide if you want to add custom content for CTA. If false, the content will be taken from default settings',
     },
-    defineField({
-      name: 'cta',
-      title: 'CTA',
-      type: 'cta',
-      group: Groups.MAIN.name,
-      hidden: ({parent}) => !parent?.withCta,
-    }),
     {
       name: 'withNewsletter',
       title: 'With Newsletter?',

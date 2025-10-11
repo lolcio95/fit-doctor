@@ -24,16 +24,16 @@ export function Navigation({ logo, menuItems }: NavigationProps) {
       <div className="relative container m-auto flex flex-col gap-4 px-6 lg:flex-row lg:items-center lg:gap-6">
         <div className="flex items-center justify-between w-full">
           <Link href="/">
-            <div className="w-10 h-10">
-              <MediaImage
-                simpleImage={logo}
-                width={150}
-                height={36}
-                placeholder="empty"
-                priority
-                asSvg
-              />
-            </div>
+            {/* <div className="w-10 h-10"> */}
+            <MediaImage
+              simpleImage={logo}
+              width={200}
+              height={56}
+              placeholder="empty"
+              priority
+              // asSvg
+            />
+            {/* </div> */}
           </Link>
           {menuItems && menuItems.length > 0 && (
             <div className="flex items-center gap-6 ml-auto">
