@@ -1,13 +1,11 @@
 import { MainHero as SanityMainHero } from "@/sanity.types";
 import React from "react";
 import { LabeledLinkType } from "@/app/components/atoms/BaseLink";
-import { HeroVideoSection } from "@/components/blocks/hero-video-section";
+import { HeroSection } from "@/components/blocks/hero-section";
 import { BaseMediaImageProps } from "@/app/components/atoms/BaseImage/types";
 
-export type MainHeroSectionProps = Omit<SanityMainHero, "buttons" | "image"> & {
-  buttons?: (Omit<NonNullable<SanityMainHero["buttons"]>[number], "link"> & {
-    link?: LabeledLinkType;
-  })[];
+export type MainHeroSectionProps = Omit<SanityMainHero, "button" | "image"> & {
+  button?: LabeledLinkType;
   image?: BaseMediaImageProps;
 };
 
@@ -15,16 +13,13 @@ export interface MainHeroProps {
   block: MainHeroSectionProps;
 }
 export const MainHero = ({ block }: MainHeroProps) => {
-  const { title, description, buttons, type, videoId, image, backgroundColor } =
-    block;
+  const { title, description, button, image, backgroundColor } = block;
 
   return (
-    <HeroVideoSection
+    <HeroSection
       title={title}
       description={description}
-      buttons={buttons}
-      type={type}
-      videoId={videoId}
+      button={button}
       image={image}
       backgroundColor={backgroundColor}
     />

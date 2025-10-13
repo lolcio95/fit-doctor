@@ -75,15 +75,10 @@ export const settingsQuery = defineQuery(`*[_type == "settings"][0]`);
 const mainHeroSection = `
   _type == "mainHero" => {
     ...,
-    ${makeRichTextFragment("title")},
-    ${makeRichTextFragment("description")},
     ${makeMediaImageFragment("image")},
-    buttons[] {
+    button {
       ...,
-      link {
-        ...,
-        ${link},
-      }
+      ${link},
     }
   }
 `;

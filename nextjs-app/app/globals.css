@@ -87,7 +87,7 @@
   --secondary-foreground: hsl(0 0% 100%);
   --secondary-foreground-muted: hsl(204, 97%, 86%);
   --muted: hsl(206 100% 97%);
-  --muted-foreground: hsl(205 93% 27%);
+  /* --muted-foreground: hsl(205 93% 27%); */
   --accent: hsl(210 40% 96%);
   --accent-foreground: hsl(206 82% 24%);
   --destructive: hsl(0 72% 51%);
@@ -110,6 +110,11 @@
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(240 5% 65%);
   --footer: hsl(215, 69%, 13%);
+}
+
+:root, body {
+  color: theme('colors.color.tertiary');
+  background: theme('colors.background.primary');
 }
 
 .dark {
