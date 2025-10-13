@@ -54,10 +54,6 @@ export const structure: StructureResolver = (S: StructureBuilder) =>
                 .schemaType('footer')
                 .child(S.document().schemaType('footer').documentId('footer')),
               S.documentListItem()
-                .title('Header')
-                .schemaType('header')
-                .child(S.document().schemaType('header').documentId('header')),
-              S.documentListItem()
                 .title('Navbar')
                 .schemaType('navbar')
                 .child(S.document().schemaType('navbar').documentId('navbar')),

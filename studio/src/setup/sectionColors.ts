@@ -22,6 +22,14 @@ export const colorsMap = {
   'Brand Gradient': {
     label: 'Brand Gradient',
     value: '#072B4A',
+  },
+  'Background Primary': {
+    label: 'Background Primary',
+    value: '#0f0f0f',
+  },
+  'Background Secondary': {
+    label: 'Background Secondary',
+    value: '#1a1a1a',
   }
 }
 
