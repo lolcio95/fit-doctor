@@ -12,6 +12,7 @@ export const sections = defineType({
     {type: 'bigImage'},
     {type: 'newsletter'},
     {type: 'listOfArticles'},
+    {type: 'whyUs'},
   ],
   options: {
     insertMenu: {

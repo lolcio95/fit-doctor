@@ -5,4 +5,6 @@ export const BACKGROUND_COLORS = [
   { label: "Dark", value: "#0A1D37" },
   { label: "Brand", value: "#072B4A" },
   { label: "Brand Gradient", value: "#072B4A" },
+  { label: "Background Primary", value: "#0f0f0f" },
+  { label: "Background Secondary", value: "#1a1a1a" },
 ] as const;

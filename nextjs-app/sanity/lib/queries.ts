@@ -195,6 +195,19 @@ export const richText = `
   }
 `;
 
+export const whyUs = `
+ _type == "whyUs" => {
+ ...,
+ whyUs[] {
+    ...,
+    image {
+      ...,
+      ${makeImageFragment("image")},
+    },
+  }
+}
+`;
+
 
 const customSections = `
     ${mainHeroSection},
@@ -205,6 +218,7 @@ const customSections = `
     ${sectionRichText},
     ${richText},
     ${newsletterSection},
+    ${whyUs},
 `;
 
 export const getNavbar = defineQuery(`

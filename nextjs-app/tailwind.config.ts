@@ -106,6 +106,7 @@ export default {
           primary: "#0f0f0f",
           secondary: "#1a1a1a",
           tertiary: "#02b360",
+          card: '#2a2a2a',
         },
         color: {
           primary: "#ffffff",

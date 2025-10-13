@@ -46,6 +46,20 @@ export type Geopoint = {
   alt?: number
 }
 
+export type WhyUs = {
+  _type: 'whyUs'
+  backgroundColor?: SimplerColor
+  title?: string
+  description?: string
+  whyUs?: Array<{
+    image?: SimpleImage
+    title?: string
+    description?: string
+    _type: 'Card'
+    _key: string
+  }>
+}
+
 export type BigImage = {
   _type: 'bigImage'
   backgroundColor?: SimplerColor
@@ -97,6 +111,9 @@ export type Sections = Array<
   | ({
       _key: string
     } & ListOfArticles)
+  | ({
+      _key: string
+    } & WhyUs)
 >
 
 export type Redirects = {
@@ -1007,6 +1024,7 @@ export type AllSanitySchemaTypes =
   | SanityImagePalette
   | SanityImageDimensions
   | Geopoint
+  | WhyUs
   | BigImage
   | Testimonials
   | MainHero

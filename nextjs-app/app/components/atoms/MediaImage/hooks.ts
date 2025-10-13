@@ -19,20 +19,20 @@ export const useSvg = (imageSrc?: string) => {
         let text = await res.text();
 
         const origTag = text.match(/<svg[^>]*>/i)?.[0] ?? "";
-        const origHasFillNone = /fill="none"/i.test(origTag);
-        const finalFill = origHasFillNone ? "none" : "currentColor";
         const vb = text.match(/viewBox="([^"]+)"/i)?.[1] || "0 0 100 100";
 
-        text = text.replace(/(fill|stroke)="[^"]*"/gi, "").replace(
+        text = text.replace(/(fill|stroke)="[^"]*"/gi, "");
+
+        text = text.replace(
           /<svg[^>]*>/i,
           `<svg
-             stroke="currentColor"
-             fill="${finalFill}"
-             stroke-width="2"
-             preserveAspectRatio="xMidYMid meet"
-             viewBox="${vb}"
-             style="width:100%;height:100%;display:block;"
-           >`.replace(/\s+/g, " ")
+            stroke="currentColor"
+            fill="none"
+            stroke-width="2"
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="${vb}"
+            style="width:100%;height:100%;display:block;"
+          >`.replace(/\s+/g, " ")
         );
 
         setSvgContent(text);
