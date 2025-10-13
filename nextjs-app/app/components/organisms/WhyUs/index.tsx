@@ -1,15 +1,12 @@
-import { Person, WhyUs as SanityWhyUs } from "@/sanity.types";
+import { WhyUs as SanityWhyUs } from "@/sanity.types";
 import React from "react";
 import { BaseImageProps } from "@/app/components/atoms/BaseImage/types";
 import { WhyUsSection } from "@/components/blocks/whyUs";
 
 export type SanityWhyUsSectionProps = Omit<SanityWhyUs, "whyUs"> & {
   whyUs:
-    | (Omit<Person, "image"> & {
-        _key?: string;
+    | (Omit<NonNullable<SanityWhyUs["whyUs"]>[number], "image"> & {
         image?: BaseImageProps;
-        title?: string;
-        description?: string;
       })[]
     | null;
 };

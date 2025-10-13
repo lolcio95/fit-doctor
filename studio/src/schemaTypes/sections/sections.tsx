@@ -14,6 +14,7 @@ export const sections = defineType({
     {type: 'listOfArticles'},
     {type: 'whyUs'},
     {type: 'plans'},
+    {type: 'gallery'},
   ],
   options: {
     insertMenu: {

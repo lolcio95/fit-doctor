@@ -46,6 +46,18 @@ export type Geopoint = {
   alt?: number
 }
 
+export type Gallery = {
+  _type: 'gallery'
+  backgroundColor?: SimplerColor
+  title?: string
+  description?: string
+  gallery?: Array<
+    {
+      _key: string
+    } & SimpleImage
+  >
+}
+
 export type Plans = {
   _type: 'plans'
   backgroundColor?: SimplerColor
@@ -133,6 +145,9 @@ export type Sections = Array<
   | ({
       _key: string
     } & Plans)
+  | ({
+      _key: string
+    } & Gallery)
 >
 
 export type Redirects = {
@@ -1043,6 +1058,7 @@ export type AllSanitySchemaTypes =
   | SanityImagePalette
   | SanityImageDimensions
   | Geopoint
+  | Gallery
   | Plans
   | WhyUs
   | BigImage

@@ -197,13 +197,25 @@ export const richText = `
 
 export const whyUs = `
  _type == "whyUs" => {
- ...,
- whyUs[] {
-    ...,
-    image {
+  ...,
+  whyUs[] {
       ...,
-      ${makeImageFragment("image")},
-    },
+      image {
+        ...,
+        ${makeImageFragment("image")},
+      },
+    }
+}
+`;
+
+
+export const gallery = `
+ _type == "gallery" => {
+  ...,
+  gallery[] {
+    ...,
+    ${makeImageFragment("image")},
+
   }
 }
 `;
@@ -219,6 +231,7 @@ const customSections = `
     ${richText},
     ${newsletterSection},
     ${whyUs},
+    ${gallery},
 `;
 
 export const getNavbar = defineQuery(`
