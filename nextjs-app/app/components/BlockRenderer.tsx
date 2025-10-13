@@ -40,6 +40,9 @@ const ListOfArticles = dynamic(() =>
 const WhyUs = dynamic(() =>
   import("@/app/components/organisms/WhyUs").then((mod) => mod.WhyUs)
 );
+const Plans = dynamic(() =>
+  import("@/app/components/organisms/Plans").then((mod) => mod.Plans)
+);
 
 const Blocks: BlocksType = {
   sectionRichText: (block) => <RichTextSection {...block} />,
@@ -48,6 +51,7 @@ const Blocks: BlocksType = {
   bigImage: (block) => <BigImage {...block} />,
   listOfArticles: (block) => <ListOfArticles {...block} />,
   whyUs: (block) => <WhyUs {...block} />,
+  plans: (block) => <Plans {...block} />,
 };
 
 /**

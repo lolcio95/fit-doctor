@@ -13,6 +13,7 @@ export const sections = defineType({
     {type: 'newsletter'},
     {type: 'listOfArticles'},
     {type: 'whyUs'},
+    {type: 'plans'},
   ],
   options: {
     insertMenu: {

@@ -46,6 +46,22 @@ export type Geopoint = {
   alt?: number
 }
 
+export type Plans = {
+  _type: 'plans'
+  backgroundColor?: SimplerColor
+  title?: string
+  description?: string
+  plans?: Array<{
+    highlighted?: boolean
+    highlightedText?: string
+    title?: string
+    price?: number
+    advantages?: Array<string>
+    _type: 'Card'
+    _key: string
+  }>
+}
+
 export type WhyUs = {
   _type: 'whyUs'
   backgroundColor?: SimplerColor
@@ -114,6 +130,9 @@ export type Sections = Array<
   | ({
       _key: string
     } & WhyUs)
+  | ({
+      _key: string
+    } & Plans)
 >
 
 export type Redirects = {
@@ -1024,6 +1043,7 @@ export type AllSanitySchemaTypes =
   | SanityImagePalette
   | SanityImageDimensions
   | Geopoint
+  | Plans
   | WhyUs
   | BigImage
   | Testimonials
