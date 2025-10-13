@@ -10,7 +10,6 @@ export function WhyUsSection({
   description,
   backgroundColor,
 }: WhyUsSectionProps) {
-  console.log("WHY US:", whyUs);
   return (
     <SectionWrapper
       backgroundColor={backgroundColor}
@@ -32,7 +31,7 @@ export function WhyUsSection({
           whyUs.map((item) => (
             <div
               key={item._key}
-              className="group flex flex-col items-center mx-4 rounded-2xl bg-background-card w-[240px] p-4"
+              className="group flex flex-col items-center mx-4 rounded-2xl bg-background-card w-[260px] p-4"
             >
               {item?.image && (
                 <div className="w-10 h-10 mb-4">
