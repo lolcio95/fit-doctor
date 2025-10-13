@@ -72,17 +72,10 @@ export type Testimonials = {
 export type MainHero = {
   _type: 'mainHero'
   backgroundColor?: SimplerColor
-  title?: RichText
-  description?: RichText
-  type?: 'image' | 'video'
   image?: Media
-  videoId?: string
-  buttons?: Array<{
-    type?: 'outline' | 'fill'
-    link?: LabeledLink
-    _type: 'buttons'
-    _key: string
-  }>
+  title?: string
+  description?: string
+  button?: LabeledLink
 }
 
 export type Sections = Array<
@@ -591,6 +584,17 @@ export type Author = {
   button?: LabeledLink
 }
 
+export type LabeledLink = {
+  _type: 'labeledLink'
+  label?: string
+  type?: 'internalLink' | 'externalUrl' | 'mediaLink' | 'sectionLink'
+  resource?: InternalLink
+  url?: ExternalUrl
+  media?: MediaLink
+  downloadType?: 'download' | 'openInNewTab'
+  section?: SectionLink
+}
+
 export type ParagraphWithDecoratorsRichText = {
   _type: 'paragraphWithDecoratorsRichText'
   richText?: Array<{
@@ -757,17 +761,6 @@ export type RichText = {
         _key: string
       } & HubspotForm)
   >
-}
-
-export type LabeledLink = {
-  _type: 'labeledLink'
-  label?: string
-  type?: 'internalLink' | 'externalUrl' | 'mediaLink' | 'sectionLink'
-  resource?: InternalLink
-  url?: ExternalUrl
-  media?: MediaLink
-  downloadType?: 'download' | 'openInNewTab'
-  section?: SectionLink
 }
 
 export type SanityImageCrop = {
@@ -1043,6 +1036,7 @@ export type AllSanitySchemaTypes =
   | ArticleRichText
   | Media
   | Author
+  | LabeledLink
   | ParagraphWithDecoratorsRichText
   | ArticleCategory
   | Advisor
@@ -1051,7 +1045,6 @@ export type AllSanitySchemaTypes =
   | Person
   | SimpleImage
   | RichText
-  | LabeledLink
   | SanityImageCrop
   | SanityImageHotspot
   | SanityImageAsset
