@@ -37,6 +37,7 @@ import { redirects } from './GlobalSettings/redirects/redirects'
 import { navbar } from './GlobalSettings/navbar/navbar'
 import { whyUs } from './sections/whyUs'
 import { plans } from './sections/plans'
+import { gallery } from './sections/gallery'
 
 // Export an array of all the schema types.  This is used in the Sanity Studio configuration. https://www.sanity.io/docs/schema-types
 
@@ -86,4 +87,5 @@ export const schemaTypes = [
   listOfArticles,
   whyUs,
   plans,
+  gallery,
 ]
