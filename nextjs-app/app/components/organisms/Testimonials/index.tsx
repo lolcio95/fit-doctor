@@ -1,6 +1,6 @@
 import { Person, Testimonials as SanityTestimonials } from "@/sanity.types";
 import React from "react";
-import { TestimonialsCarousel } from "@/components/blocks/testimonials-carousel";
+import { Testimonials as TestimonialsSection } from "@/components/blocks/testimonials-section";
 import { BaseImageProps } from "@/app/components/atoms/BaseImage/types";
 
 export type TestimonialsSectionProps = Omit<
@@ -22,12 +22,14 @@ export interface TestimonialsProps {
 }
 
 export const Testimonials = ({ block }: TestimonialsProps) => {
-  const { testimonials, backgroundColor } = block;
+  const { testimonials, backgroundColor, title, description } = block;
 
   return (
-    <TestimonialsCarousel
+    <TestimonialsSection
       testimonials={testimonials ?? []}
       backgroundColor={backgroundColor}
+      title={title}
+      description={description}
     />
   );
 };
