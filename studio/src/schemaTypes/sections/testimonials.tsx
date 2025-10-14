@@ -3,7 +3,7 @@ import {blockContentPreview} from '../../utils/blockContentPreview'
 import {withDefaultGroup} from '../../utils/enhancers'
 import {extendModel} from '../../utils/model'
 import {section} from '../objects/section'
-import { colorsMap } from '../../setup/sectionColors'
+import {colorsMap} from '../../setup/sectionColors'
 
 export const testimonials = withDefaultGroup(
   extendModel(section, {
@@ -12,6 +12,16 @@ export const testimonials = withDefaultGroup(
     icon: ImageIcon,
     type: 'object',
     fields: [
+      {
+        name: 'title',
+        title: 'Title',
+        type: 'string',
+      },
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'text',
+      },
       {
         name: 'testimonials',
         type: 'array',
@@ -63,12 +73,12 @@ export const testimonials = withDefaultGroup(
       },
     ],
     initialValue: {
-      backgroundColor: colorsMap['Muted Light'],
+      backgroundColor: colorsMap['Background Primary'],
     },
     preview: {
       prepare() {
         return {
-          title: 'Testimonials section',
+          title: 'Testimonials',
         }
       },
     },

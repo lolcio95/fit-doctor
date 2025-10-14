@@ -259,7 +259,13 @@ export function PortableText({
   };
 
   return (
-    <div className={clsx("prose prose-a:text-red-500", className)}>
+    <div
+      className={clsx(
+        "prose prose-a:text-red-500",
+        "text-color-tertiary",
+        className
+      )}
+    >
       <SanityPortableText
         components={components}
         value={value?.richText ?? []}

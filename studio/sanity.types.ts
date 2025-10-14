@@ -98,6 +98,8 @@ export type BigImage = {
 export type Testimonials = {
   _type: 'testimonials'
   backgroundColor?: SimplerColor
+  title?: string
+  description?: string
   testimonials?: Array<{
     content?: RichText
     person?: {
