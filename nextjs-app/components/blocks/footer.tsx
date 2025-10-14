@@ -2,6 +2,7 @@
 
 import { BaseImageProps } from "@/app/components/atoms/BaseImage/types";
 import { BaseLink, LabeledLinkType } from "@/app/components/atoms/BaseLink";
+import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import { MediaImage } from "@/app/components/atoms/MediaImage";
 import { PortableText } from "@/app/components/atoms/PortableText";
 import { GetFooterQueryResult, SocialMedia } from "@/sanity.types";
@@ -43,16 +44,16 @@ export function Footer({
 }: FooterProps) {
   return (
     <footer
-      className="bg-footer py-16 text-white lg:py-24"
+      className="bg-background-secondary py-16 text-white lg:py-10"
       role="contentinfo"
       aria-label="Site footer"
     >
       <div className="container mx-auto flex flex-col gap-12 px-6 lg:gap-24">
         {!!footerMenuItems?.length && (
-          <div className="grid grid-cols-1 items-center gap-12 text-center lg:grid-cols-6 lg:items-start lg:gap-6 lg:text-left">
+          <div className="grid grid-cols-1 items-center gap-12 text-center lg:grid-cols-3 lg:items-start lg:gap-14 lg:text-left lg:mx-auto">
             {footerMenuItems.map((column) => (
               <div key={column._key} className="flex flex-col gap-4">
-                <h2 className="text-base font-bold text-white">
+                <h2 className="text-base font-bold text-color-secondary">
                   {column.title}
                 </h2>
                 {!!column.submenu?.length && (
@@ -80,20 +81,19 @@ export function Footer({
                       }
 
                       if (type === "link") {
-                        const { link } = submenuItem;
+                        const { link, _key } = submenuItem;
 
                         if (!link?.label) {
                           return null;
                         }
 
                         return (
-                          <BaseLink
+                          <ButtonLink
                             key={_key}
+                            variant={"link"}
                             link={link}
-                            className="text-secondary-foreground-muted text-base font-medium transition-colors hover:text-white whitespace-pre-line"
-                          >
-                            {link.label}
-                          </BaseLink>
+                            className="p-0.5"
+                          />
                         );
                       }
 
@@ -134,12 +134,12 @@ export function Footer({
             </nav>
           )}
           {!!socialMedia?.length && (
-            <div className="order-1 lg:order-3 flex gap-2 justify-center">
+            <div className="order-1 lg:order-3 flex gap-2.5 justify-center">
               {socialMedia.map(({ name, socialsUrl, image }) => (
                 <Link
                   key={name}
                   href={socialsUrl ?? ""}
-                  className="flex items-center justify-center transition-colors hover:scale-110 hover:text-white lg:order-3"
+                  className="flex items-center justify-center transition-all hover:scale-110 hover:text-color-secondary lg:order-3"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -149,6 +149,8 @@ export function Footer({
                       width={24}
                       height={24}
                       placeholder="empty"
+                      className="w-6 h-6"
+                      asSvg
                     />
                   )}
                 </Link>
