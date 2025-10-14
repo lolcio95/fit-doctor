@@ -1,5 +1,5 @@
 {
-  "name": "wealtharc---internal",
+  "name": "fitdoctor---internal",
   "description": "Next.js + Sanity: A Powerful Website Starter with Real-time Visual Editing",
   "scripts": {
     "dev": "npm-run-all --parallel dev:*",

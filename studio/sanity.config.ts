@@ -55,7 +55,7 @@ function resolveHref(documentType?: string, slug?: string): string | undefined {
 // Main Sanity configuration
 export default defineConfig({
   name: 'default',
-  title: 'WealthArc',
+  title: 'FitDoctor',
   icon: LogoComponent,
 
   projectId,
