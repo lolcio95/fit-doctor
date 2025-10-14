@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "WealthArc Admin Panel",
-  description: "WealthArc admin panel",
+  title: "FitDoctor Admin Panel",
+  description: "FitDoctor admin panel",
 };
 
 export default function RootLayout({

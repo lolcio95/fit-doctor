@@ -3,7 +3,7 @@ import { seoGlobal } from "@/sanity/lib/queries";
 import { resolveOpenGraphImage } from "@/sanity/lib/utils";
 import { Metadata } from "next";
 
-const DEFAULT_TITLE = "Wealth Management Platform & Solutions | WealthArc";
+const DEFAULT_TITLE = "Fitdoctor";
 
 export const fetchMetadata = async ({
   query,
