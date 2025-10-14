@@ -81,7 +81,7 @@ export function Footer({
                       }
 
                       if (type === "link") {
-                        const { link } = submenuItem;
+                        const { link, _key } = submenuItem;
 
                         if (!link?.label) {
                           return null;
@@ -89,6 +89,7 @@ export function Footer({
 
                         return (
                           <ButtonLink
+                            key={_key}
                             variant={"link"}
                             link={link}
                             className="p-0.5"
