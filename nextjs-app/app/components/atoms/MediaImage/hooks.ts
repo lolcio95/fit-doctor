@@ -6,8 +6,12 @@ export const useSvg = (imageSrc?: string) => {
   const [svgContent, setSvgContent] = useState("");
 
   const isSvgUrl = (url: string) => {
-    const pathname = new URL(url).pathname;
-    return /\.svg$/i.test(pathname);
+    try {
+      const pathname = new URL(url, window.location.href).pathname;
+      return /\.svg$/i.test(pathname);
+    } catch {
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -18,17 +22,14 @@ export const useSvg = (imageSrc?: string) => {
         const res = await fetch(imageSrc);
         let text = await res.text();
 
-        const origTag = text.match(/<svg[^>]*>/i)?.[0] ?? "";
         const vb = text.match(/viewBox="([^"]+)"/i)?.[1] || "0 0 100 100";
 
-        text = text.replace(/(fill|stroke)="[^"]*"/gi, "");
+        text = text.replace(/fill="(?!none)[^"]*"/gi, 'fill="currentColor"');
+        text = text.replace(/stroke="(?!none)[^"]*"/gi, 'stroke="currentColor"');
 
         text = text.replace(
           /<svg[^>]*>/i,
           `<svg
-            stroke="currentColor"
-            fill="none"
-            stroke-width="2"
             preserveAspectRatio="xMidYMid meet"
             viewBox="${vb}"
             style="width:100%;height:100%;display:block;"
@@ -42,9 +43,7 @@ export const useSvg = (imageSrc?: string) => {
     })();
   }, [imageSrc]);
 
-  return {
-    svgContent,
-  };
+  return { svgContent };
 };
 
 export const useIsMobile = () => {
