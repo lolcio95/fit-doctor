@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function RegistrationPage() {
   const router = useRouter();
@@ -72,9 +73,9 @@ export default function RegistrationPage() {
         {success && <div className="text-green-600">{success}</div>}
       </form>
       <div>
-        <a href="/login" className="underline text-blue-700">
+        <Link href="/login" className="underline text-blue-700">
           Masz już konto? Zaloguj się
-        </a>
+        </Link>
       </div>
     </section>
   );

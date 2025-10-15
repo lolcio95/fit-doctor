@@ -2,6 +2,7 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function LoginPage() {
   const { data: session, status } = useSession();
@@ -62,9 +63,9 @@ export default function LoginPage() {
             </Button>
           </div>
           <div>
-            <a href="/registration" className="underline text-blue-700">
+            <Link href="/registration" className="underline text-blue-700">
               Nie masz konta? Zarejestruj się
-            </a>
+            </Link>
           </div>
         </>
       ) : (
