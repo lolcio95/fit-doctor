@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ message: 'Rejestracja udana!' }, { status: 201 });
-  } catch (error) {
+  } catch (err) {
+    console.error("registration error: ", err);
     return NextResponse.json({ error: 'Coś poszło nie tak.' }, { status: 500 });
   }
 }
