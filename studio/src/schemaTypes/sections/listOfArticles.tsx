@@ -69,7 +69,7 @@ export const listOfArticles = withDefaultGroup(
       },
     ],
     initialValue: {
-      backgroundColor: colorsMap.Light,
+      backgroundColor: colorsMap['Background Primary'],
     },
     preview: {
       select: {

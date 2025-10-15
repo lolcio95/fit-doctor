@@ -5,7 +5,7 @@ import Groups from '../../setup/groups'
 import {extendModel} from '../../utils/model'
 import slug from '../objects/slug'
 
-const ARTICLE_PREFIX = '/insights-articles/'
+const ARTICLE_PREFIX = '/blog/'
 
 export const article = defineType({
   name: 'article',
