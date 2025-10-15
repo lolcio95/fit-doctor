@@ -11,7 +11,7 @@ import {
 } from "@/app/components/atoms/BaseImage/types";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import { LabeledLinkType } from "@/app/components/atoms/BaseLink";
-import { getHeadings } from "@/app/(main)/insights-articles/[slug]/utils";
+import { getHeadings } from "@/app/(main)/blog/[slug]/utils";
 
 type Article = Omit<
   NonNullable<ArticleQueryResult>,

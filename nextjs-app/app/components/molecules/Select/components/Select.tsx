@@ -13,7 +13,6 @@ import { StylesConfig } from "react-select";
 import { ChevronDownIcon } from "lucide-react";
 
 const ReactSelect = dynamic(() => import("react-select"), {
-  // ssr: false,
   loading: () => (
     <div className="w-full md:max-w-[200px]">
       <div className="w-full flex items-center justify-between bg-background border rounded-md px-3 py-2 text-sm cursor-pointer">
