@@ -6,6 +6,7 @@ import { articleQuery, articlePagesSlugs } from "@/sanity/lib/queries";
 import { ListOfArticles } from "@/app/components/organisms/ListOfArticles";
 import { ArticleContent } from "./components/ArticleContent";
 import { fetchMetadata } from "@/app/utils/fetchMetadata";
+import { getAppDomain } from "@/app/utils/misc";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -63,15 +64,61 @@ export default async function ArticlePage(props: Props) {
     withNewsletter,
   } = article;
 
+  // Generate JSON-LD structured data for the article
+  const domain = getAppDomain();
+  const articleUrl = `${domain}${slug}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title || "",
+    datePublished: article.date || new Date().toISOString(),
+    dateModified: article._updatedAt || article.date || new Date().toISOString(),
+    author: article.author
+      ? {
+          "@type": "Person",
+          name: article.author.name || "",
+          ...(article.author.picture?.image?.asset?.url && {
+            image: article.author.picture.image.asset.url,
+          }),
+        }
+      : undefined,
+    publisher: {
+      "@type": "Organization",
+      name: "Fitdoctor.pl",
+      logo: {
+        "@type": "ImageObject",
+        url: `${domain}/favicon.svg`,
+      },
+    },
+    description:
+      article.seo?.metaDescription || article.title || "",
+    ...(article.coverImage?.mobileImage?.asset?.url && {
+      image: article.coverImage.mobileImage.asset.url,
+    }),
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": articleUrl,
+    },
+    ...(article.category?.categoryName && {
+      articleSection: article.category.categoryName,
+    }),
+  };
+
   return (
-    <section
-      className="bg-background-secondary pt-16 md:pt-24"
-      aria-labelledby="article-title"
-    >
-      <div className="container pb-10">
-        <ArticleContent article={article} />
-      </div>
-      {listOfArticles && <ListOfArticles block={listOfArticles} />}
-    </section>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <section
+        className="bg-background-secondary pt-16 md:pt-24"
+        aria-labelledby="article-title"
+      >
+        <div className="container pb-10">
+          <ArticleContent article={article} />
+        </div>
+        {listOfArticles && <ListOfArticles block={listOfArticles} />}
+      </section>
+    </>
   );
 }
