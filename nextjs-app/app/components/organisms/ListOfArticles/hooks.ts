@@ -11,14 +11,29 @@ export const usePaginatedArticles = (block: ListOFArticlesSectionProps) => {
   const [currentCategory, setCurrentCategory] = useState<string | undefined>(
     undefined
   );
+  const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
 
   const onChangeCategory = async (category?: string) => {
     setArticlesLoading(true);
-    const articles = await fetchArticles({ category, type, page: 0 });
+    const articles = await fetchArticles({ category, type, page: 0, search: searchTerm });
     setArticles(articles);
     setCurrentPage(0);
     setCurrentCategory(category);
+    setArticlesLoading(false);
+  };
+
+  const onSearch = async (search?: string) => {
+    setArticlesLoading(true);
+    const articles = await fetchArticles({ 
+      category: currentCategory, 
+      type, 
+      page: 0,
+      search 
+    });
+    setArticles(articles);
+    setCurrentPage(0);
+    setSearchTerm(search);
     setArticlesLoading(false);
   };
 
@@ -29,6 +44,7 @@ export const usePaginatedArticles = (block: ListOFArticlesSectionProps) => {
       type,
       page,
       category: currentCategory,
+      search: searchTerm,
     });
     setArticles((prev) => [...prev, ...articles]);
     setCurrentPage(page);
@@ -53,6 +69,7 @@ export const usePaginatedArticles = (block: ListOFArticlesSectionProps) => {
     loading: articlesLoading,
     type,
     onChangeCategory,
+    onSearch,
     categories,
     metadata,
     fetchMoreArticles,

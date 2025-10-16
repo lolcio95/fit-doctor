@@ -41,6 +41,7 @@ export const ListOfArticles = ({ block }: ListOfArticlesProps) => {
     loading,
     metadata,
     onChangeCategory,
+    onSearch,
     type,
     isLoading,
   } = usePaginatedArticles(block);
@@ -48,6 +49,7 @@ export const ListOfArticles = ({ block }: ListOfArticlesProps) => {
   return (
     <BlogCardsSection
       title={title}
+      onSearch={onSearch}
       articles={articles}
       loading={loading}
       type={type}
