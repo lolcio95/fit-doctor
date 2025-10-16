@@ -401,6 +401,19 @@ export const getAllArticlesQuery = defineQuery(`
   }
 `);
 
+export const searchArticlesQuery = defineQuery(`
+  *[_type == "article" 
+    && (!defined($categoryName) || category->categoryName == $categoryName)
+    && (title match $searchTerm + "*" || pt::text(content.richText) match $searchTerm + "*")
+  ] | order(date desc)[$pageStart...$pageEnd] {
+    ...,
+    ${makeMediaImageFragment("coverImage")},
+    category-> {
+      ...
+    }
+  }
+`);
+
 export const getArticleCategories = defineQuery(`
   *[_type == "articleCategory"] {
     ...,

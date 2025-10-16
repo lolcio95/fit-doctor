@@ -21,6 +21,7 @@ interface BlogCardsSectionProps {
   loading?: boolean;
   categories?: { categoryName: string }[];
   onChangeCategory: (categoryName?: string) => void;
+  onSearch?: (search?: string) => void;
   type: ListOfArticles["type"];
   metadata: ArticleMetadata;
   fetchMoreArticles: () => void;
@@ -36,6 +37,7 @@ export function BlogCardsSection({
   categories,
   type,
   onChangeCategory,
+  onSearch,
   metadata,
   fetchMoreArticles,
   backgroundColor,
@@ -43,6 +45,7 @@ export function BlogCardsSection({
   allArticlesButton,
 }: BlogCardsSectionProps) {
   const [totalArticlesCount, setTotalArticlesCount] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
 
   const options = useMemo(
     () => [
@@ -78,6 +81,23 @@ export function BlogCardsSection({
     [setTotalArticlesCount, onChangeCategory, metadata, articles]
   );
 
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (onSearch) {
+        onSearch(searchInput.trim() || undefined);
+      }
+    },
+    [onSearch, searchInput]
+  );
+
+  const handleSearchInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchInput(e.target.value);
+    },
+    []
+  );
+
   return (
     <SectionWrapper
       backgroundColor={backgroundColor}
@@ -96,11 +116,28 @@ export function BlogCardsSection({
             {type === "recent" || type === "custom" ? (
               <ButtonLink variant="outline" link={allArticlesButton} />
             ) : (
-              <Select
-                options={options}
-                onChange={handleChange}
-                placeholder="Category"
-              />
+              <div className="flex flex-col md:flex-row gap-4">
+                {onSearch && (
+                  <form onSubmit={handleSearch} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={searchInput}
+                      onChange={handleSearchInputChange}
+                      placeholder="Szukaj artykułów..."
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                      aria-label="Search articles"
+                    />
+                    <Button type="submit" variant="outline">
+                      Szukaj
+                    </Button>
+                  </form>
+                )}
+                <Select
+                  options={options}
+                  onChange={handleChange}
+                  placeholder="Category"
+                />
+              </div>
             )}
           </div>
           {loading ? (
