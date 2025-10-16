@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { sanityFetch } from "@/sanity/lib/live";
 import { articleQuery, articlePagesSlugs } from "@/sanity/lib/queries";
 import { ListOfArticles } from "@/app/components/organisms/ListOfArticles";
-import { Newsletter } from "@/app/components/organisms/Newsletter";
 import { ArticleContent } from "./components/ArticleContent";
 import { fetchMetadata } from "@/app/utils/fetchMetadata";
 
@@ -36,7 +35,7 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const params = await props.params;
-  const slug = `/insights-articles/${params.slug}`;
+  const slug = `/blog/${params.slug}`;
   const metadata = await fetchMetadata({ query: articleQuery, slug });
 
   return metadata;
@@ -44,7 +43,7 @@ export async function generateMetadata(
 
 export default async function ArticlePage(props: Props) {
   const params = await props.params;
-  const slug = `/insights-articles/${params.slug}`;
+  const slug = `/blog/${params.slug}`;
 
   const { data: article } = await sanityFetch({
     query: articleQuery,
@@ -64,36 +63,15 @@ export default async function ArticlePage(props: Props) {
     withNewsletter,
   } = article;
 
-  const {
-    cta: defaultCta,
-    newsletter: defaultNewsletter,
-    listOfArticles: defaultListOfArticles,
-  } = article.defaultArticleSectionsData;
-
   return (
     <section
-      className="bg-background pt-16 md:pt-24"
+      className="bg-background-secondary pt-16 md:pt-24"
       aria-labelledby="article-title"
     >
-      <div className="container mx-auto flex gap-12 px-6">
+      <div className="container pb-10">
         <ArticleContent article={article} />
       </div>
-      {(listOfArticles || defaultListOfArticles) && (
-        <ListOfArticles
-          block={
-            withListOfArticles && !!listOfArticles
-              ? listOfArticles
-              : defaultListOfArticles
-          }
-        />
-      )}
-      {(newsletter || defaultNewsletter) && (
-        <Newsletter
-          block={
-            withNewsletter && !!newsletter ? newsletter : defaultNewsletter
-          }
-        />
-      )}
+      {listOfArticles && <ListOfArticles block={listOfArticles} />}
     </section>
   );
 }

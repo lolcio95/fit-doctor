@@ -10,7 +10,6 @@ import { Spinner } from "@/components/ui/Spinner";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import { ArticleMetadata } from "@/app/components/organisms/ListOfArticles";
 import SectionWrapper from "@/app/components/molecules/SectionWrapper";
-import { getSecondaryTextColor } from "@/utils/colors";
 import clsx from "clsx";
 import { Button } from "../ui/button";
 import { LabeledLinkType } from "@/app/components/atoms/BaseLink";
@@ -57,14 +56,14 @@ export function BlogCardsSection({
     ],
     [categories]
   );
+  //TODO naprawić, aby nie zwracało nadmiarowych artykułów
+  const articlesList =
+    type === "recent" ? (articles ?? []).slice(0, 4) : (articles ?? []);
 
   useEffect(() => {
     setTotalArticlesCount(metadata["all"]?.count ?? 0);
   }, [metadata]);
 
-  const secondaryTextColorClassName = getSecondaryTextColor(
-    backgroundColor?.label
-  );
   const hasMore =
     articles?.length &&
     (type !== "all" || totalArticlesCount > articles.length);
@@ -82,16 +81,14 @@ export function BlogCardsSection({
   return (
     <SectionWrapper
       backgroundColor={backgroundColor}
-      className="py-16 md:py-24"
-      defaultBgClassName="bg-background"
+      className="py-16 md:py-24 bg-background-secondary"
     >
       <div className="container mx-auto px-6">
         <div>
           <div className="mx-auto flex w-full flex-col justify-between gap-4 md:flex-row md:items-center mb-8 md:mb-12">
             <h2
               className={clsx(
-                secondaryTextColorClassName,
-                "text-3xl font-bold md:text-4xl"
+                "text-3xl font-bold md:text-4xl text-color-tertiary"
               )}
             >
               {title}
@@ -123,11 +120,11 @@ export function BlogCardsSection({
                 className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 md:gap-6 lg:grid-cols-4"
                 role="list"
               >
-                <ArticlesList articles={articles} />
+                <ArticlesList articles={articlesList} />
               </div>
               {hasMore && type === "all" && !isLoading && (
                 <div className="flex items-center justify-center w-full h-14 mt-5">
-                  <Button onClick={fetchMoreArticles}>Fetch more</Button>
+                  <Button onClick={fetchMoreArticles}>Załaduj więcej</Button>
                 </div>
               )}
               {isLoading && (
@@ -138,7 +135,7 @@ export function BlogCardsSection({
             </div>
           ) : (
             <h3 className="text-base leading-normal font-semibold group-hover:underline">
-              No results for the selected category.
+              Brak rezultatów dla wybranej kategorii.
             </h3>
           )}
         </div>

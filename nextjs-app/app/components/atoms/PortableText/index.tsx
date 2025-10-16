@@ -75,7 +75,7 @@ export function PortableText({
       normal: ({ children }) => (
         <p
           className={clsx({
-            "leading-[1.75rem]": isArticleContent,
+            "leading-[1.75rem] text-color-tertiary": isArticleContent,
           })}
         >
           {getContent(children, removeHardBreaks)}
@@ -84,7 +84,7 @@ export function PortableText({
       h1: ({ children, value }) => (
         <h1
           id={value.children?.[0]._key ?? ""}
-          className={clsx("text-4xl md:text-5xl", {
+          className={clsx("text-4xl md:text-5xl text-color-tertiary", {
             "font-extrabold tracking-[-0.025rem]": isArticleContent,
             "font-bold": !isArticleContent,
           })}
@@ -96,7 +96,7 @@ export function PortableText({
         <h2
           id={value.children?.[0]._key ?? ""}
           className={clsx({
-            "text-3xl font-semibold leading-[2.25rem] tracking-[-0.025rem]":
+            "text-3xl font-semibold leading-[2.25rem] tracking-[-0.025rem] text-color-tertiary":
               isArticleContent,
             "text-3xl font-bold md:text-4xl": !isArticleContent,
           })}
@@ -107,7 +107,7 @@ export function PortableText({
       h2alt: ({ children, value }) => (
         <h2
           id={value.children?.[0]._key ?? ""}
-          className="text-2xl md:text-3xl font-bold"
+          className="text-2xl md:text-3xl font-bold text-color-tertiary"
         >
           {getContent(children, removeHardBreaks)}
         </h2>
@@ -115,7 +115,7 @@ export function PortableText({
       h3: ({ children, value }) => (
         <h3
           id={value.children?.[0]._key ?? ""}
-          className="text-2xl font-semibold leading-[2.25rem] tracking-[-0.025rem]"
+          className="text-2xl font-semibold leading-[2.25rem] tracking-[-0.025rem] text-color-tertiary"
         >
           {getContent(children, removeHardBreaks)}
         </h3>
@@ -123,7 +123,7 @@ export function PortableText({
       h4: ({ children, value }) => (
         <h4
           id={value.children?.[0]._key ?? ""}
-          className="text-xl font-semibold leading-[1.75rem] tracking-[-0.025rem]"
+          className="text-xl font-semibold leading-[1.75rem] tracking-[-0.025rem] text-color-tertiary"
         >
           {getContent(children, removeHardBreaks)}
         </h4>
@@ -131,20 +131,20 @@ export function PortableText({
       paragraph: ({ children }) => (
         <p
           className={clsx({
-            "leading-[1.75rem]": isArticleContent,
+            "leading-[1.75rem] text-color-tertiary": isArticleContent,
           })}
         >
           {getContent(children, removeHardBreaks)}
         </p>
       ),
       responsiveParagraph: ({ children }) => (
-        <p className="text-base lg:text-lg">
+        <p className="text-base lg:text-lg text-color-tertiary">
           {getContent(children, removeHardBreaks)}
         </p>
       ),
       lead: ({ children }) => (
         <p
-          className={clsx("text-[1.25rem]", {
+          className={clsx("text-[1.25rem] text-color-tertiary", {
             "leading-[1.75rem]": isArticleContent,
           })}
         >
@@ -153,7 +153,7 @@ export function PortableText({
       ),
       large: ({ children }) => (
         <p
-          className={clsx("font-semibold text-[1.125rem]", {
+          className={clsx("font-semibold text-[1.125rem] text-color-tertiary", {
             "leading-[1.75rem]": isArticleContent,
           })}
         >
@@ -162,7 +162,7 @@ export function PortableText({
       ),
       small: ({ children }) => (
         <p
-          className={clsx("text-[.875rem]", {
+          className={clsx("text-[.875rem] text-color-tertiary", {
             "leading-[.875rem]": isArticleContent,
             "leading-5": !isArticleContent,
           })}
@@ -171,7 +171,7 @@ export function PortableText({
         </p>
       ),
       blockquote: ({ children }) => (
-        <blockquote className="border-l-2 pl-6 italic leading-[1.5rem]">
+        <blockquote className="border-l-2 pl-6 italic leading-[1.5rem] text-color-tertiary">
           {getContent(children, removeHardBreaks)}
         </blockquote>
       ),
@@ -185,18 +185,20 @@ export function PortableText({
         </span>
       ),
       code: ({ children }) => (
-        <code className="px-[.3rem] py-[.2rem] rounded-sm bg-sky-50 font-bold text-[.875rem]">
+        <code className="px-[.3rem] py-[.2rem] rounded-sm bg-sky-50 font-bold text-[.875rem] text-color-tertiary">
           {children}
         </code>
       ),
       left: ({ children }) => (
-        <span className="block text-left">{children}</span>
+        <span className="block text-left text-color-tertiary">{children}</span>
       ),
       center: ({ children }) => (
-        <span className="block text-center">{children}</span>
+        <span className="block text-center text-color-tertiary">
+          {children}
+        </span>
       ),
       right: ({ children }) => (
-        <span className="block text-right">{children}</span>
+        <span className="block text-right text-color-tertiary">{children}</span>
       ),
       link: ({ children, value }) => {
         return (
