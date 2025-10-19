@@ -11,7 +11,8 @@ export async function GET(req: NextRequest, ctx: any) {
     return NextResponse.json({ error: "Brak autoryzacji." }, { status: 401 });
   }
 
-  const params = ctx?.params;
+  // params może być thenable/proxy — trzeba go awaitować
+  const params = ctx?.params ? await ctx.params : undefined;
   const id = params?.id ?? new URL(req.url).pathname.split("/").pop();
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } });
@@ -46,8 +47,9 @@ export async function PATCH(req: NextRequest, ctx: any) {
     return NextResponse.json({ error: "Brak autoryzacji." }, { status: 401 });
   }
 
-  const params = ctx?.params;
+  const params = ctx?.params ? await ctx.params : undefined;
   const id = params?.id ?? new URL(req.url).pathname.split("/").pop();
+
   const body = await req.json();
   const { name, description } = body as { name?: string; description?: string };
 
@@ -77,7 +79,7 @@ export async function DELETE(req: NextRequest, ctx: any) {
     return NextResponse.json({ error: "Brak autoryzacji." }, { status: 401 });
   }
 
-  const params = ctx?.params;
+  const params = ctx?.params ? await ctx.params : undefined;
   const id = params?.id ?? new URL(req.url).pathname.split("/").pop();
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } });
