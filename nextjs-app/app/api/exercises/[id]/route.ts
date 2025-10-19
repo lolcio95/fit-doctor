@@ -12,6 +12,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 
   const id = params?.id ?? new URL(req.url).pathname.split("/").pop();
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user) {
+    return NextResponse.json({ error: "Użytkownik nieznaleziony." }, { status: 404 });
+  }
+
   const exercise = await prisma.exercise.findUnique({
     where: { id },
   });
@@ -20,7 +26,18 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: "Ćwiczenie nie znalezione." }, { status: 404 });
   }
 
-  return NextResponse.json(exercise);
+  // Count how many trainingExercise relations reference this exercise for trainings that belong to this user
+  const usedCount = await prisma.trainingExercise.count({
+    where: {
+      exerciseId: id,
+      training: {
+        userId: user.id,
+      },
+    },
+  });
+
+  // Return exercise data + usedCount so frontend can warn user
+  return NextResponse.json({ ...exercise, usedCount });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -59,7 +76,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ error: "Brak autoryzacji." }, { status: 401 });
   }
 
-  // safe id extraction (avoids Next.js "params should be awaited" issues)
+  // safe id extraction
   const id = params?.id ?? new URL(req.url).pathname.split("/").pop();
 
   // verify user
@@ -73,9 +90,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 
   try {
-    // 1) Remove all TrainingExercise relations that reference this exercise in trainings belonging to this user
-    //    (we scope to trainings owned by user to be safe)
-    const deletedRelations = await prisma.trainingExercise.deleteMany({
+    // remove all TrainingExercise relations referencing this exercise for trainings owned by the user
+    await prisma.trainingExercise.deleteMany({
       where: {
         exerciseId: id,
         training: {
@@ -84,15 +100,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       },
     });
 
-    // 2) Delete the exercise itself
+    // delete the exercise
     await prisma.exercise.delete({
       where: { id },
     });
 
-    return NextResponse.json({
-      message: "Usunięto ćwiczenie oraz powiązania z treningami.",
-      removedTrainingExerciseCount: deletedRelations.count ?? 0,
-    });
+    return NextResponse.json({ message: "Usunięto ćwiczenie oraz powiązania z treningami." });
   } catch (err) {
     console.error("Error deleting exercise and relations:", err);
     return NextResponse.json({ error: "Błąd przy usuwaniu ćwiczenia." }, { status: 500 });
