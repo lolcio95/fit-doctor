@@ -5,13 +5,14 @@ import { authOptions } from "../../auth/authOptions";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, ctx: any) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Brak autoryzacji." }, { status: 401 });
   }
 
-  const { id } = params;
+  const params = ctx?.params;
+  const id = params?.id ?? new URL(req.url).pathname.split("/").pop();
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } });
   if (!user) return NextResponse.json({ error: "Użytkownik nie znaleziony." }, { status: 404 });
@@ -28,13 +29,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json(training);
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, ctx: any) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Brak autoryzacji." }, { status: 401 });
   }
 
-  const { id } = params;
+  const params = ctx?.params;
+  const { id } = { id: params?.id ?? new URL(req.url).pathname.split("/").pop() };
   const body = await req.json();
   const { date, exercises } = body as { date?: string; exercises?: any[] };
 
@@ -83,13 +85,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json(updated);
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, ctx: any) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Brak autoryzacji." }, { status: 401 });
   }
 
-  const { id } = params;
+  const params = ctx?.params;
+  const id = params?.id ?? new URL(req.url).pathname.split("/").pop();
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } });
   if (!user) return NextResponse.json({ error: "Użytkownik nie znaleziony." }, { status: 404 });
@@ -100,8 +103,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ error: "Nie znaleziono treningu lub brak uprawnień." }, { status: 404 });
   }
 
-  // najpierw usuń powiązane TrainingExercise, potem usuń sam Training
   try {
+    // najpierw usuń powiązane TrainingExercise, potem usuń sam Training
     await prisma.trainingExercise.deleteMany({ where: { trainingId: id } });
     await prisma.training.delete({ where: { id } });
     return NextResponse.json({ message: "Usunięto trening." });
