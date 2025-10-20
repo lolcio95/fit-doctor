@@ -97,6 +97,7 @@ export default function TrainingsPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        // show server message (e.g. "Masz już trening tego dnia!")
         setError(data.error || "Błąd przy kończeniu treningu");
       } else {
         // refresh list

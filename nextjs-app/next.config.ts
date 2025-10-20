@@ -16,6 +16,7 @@ const nextConfig: NextConfig = withBundleAnalyzer({
       protocol: 'https',
       hostname: 'cdn.sanity.io'
     }],
+    domains: ['lh3.googleusercontent.com'],
   },
 });
 

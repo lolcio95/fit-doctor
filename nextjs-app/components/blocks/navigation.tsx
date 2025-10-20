@@ -9,6 +9,10 @@ import { LabeledLinkType } from "@/app/components/atoms/BaseLink";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import { useSession, signOut } from "next-auth/react";
 import { HamburgerButton } from "@/app/components/atoms/HamburgerButton";
+import NextImage from "next/image";
+import { Loader2, ChevronDown } from "lucide-react";
+import clsx from "clsx";
+import imagePlaceholder from "@/public/assets/user-img-placeholder.jpg";
 
 type NavLink = (LabeledLinkType & { _key: string }) | null;
 
@@ -20,6 +24,11 @@ interface NavigationProps {
 export function Navigation({ logo, menuItems }: NavigationProps) {
   const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+
+  const handleUserClick = () => {
+    setIsUserDropdownOpen((prevState) => !prevState);
+  };
 
   return (
     <nav className="bg-background-secondary sticky top-0 isolate z-50 py-0 lg:py-0 h-14 lg:h-20 flex justify-center items-center">
@@ -51,22 +60,72 @@ export function Navigation({ logo, menuItems }: NavigationProps) {
                 )}
               </div>
             )}
-            {status === "authenticated" ? (
-              <Button
-                variant="outline"
-                className="ml-6"
-                onClick={() => signOut()}
-              >
-                Wyloguj
-              </Button>
-            ) : (
-              <ButtonLink
-                variant="outline"
-                className="ml-6"
-                text="Zaloguj"
-                href={"/login"}
-              />
-            )}
+            <div className="w-[270px] select-none">
+              {status === "authenticated" && session?.user ? (
+                <div
+                  className="flex items-center cursor-pointer relative justify-end"
+                  onClick={handleUserClick}
+                >
+                  <p className="font-bold">{session.user.name}</p>
+                  <NextImage
+                    className="mx-2 rounded-full w-10 h-10 object-cover"
+                    src={session.user.image || imagePlaceholder}
+                    alt={session.user.name || "User Image"}
+                    width={40}
+                    height={40}
+                    placeholder="empty"
+                    priority
+                  />
+                  <ChevronDown
+                    className={clsx("text-color-tertiary", {
+                      "rotate-180": isUserDropdownOpen,
+                    })}
+                  />
+                  {isUserDropdownOpen && (
+                    <div className="w-full p-4 bg-background-card border-1 rounded-md border-color-tertiary absolute bottom-0 left-0 translate-y-[calc(100%+10px)]">
+                      <ButtonLink
+                        variant="link"
+                        className="w-full"
+                        text={"Panel użytkownika"}
+                        href={"/user"}
+                        onClick={() => {
+                          setIsUserDropdownOpen(false);
+                        }}
+                      />
+                      <Button
+                        variant="link"
+                        className="w-full"
+                        onClick={() => {
+                          signOut();
+                          setIsUserDropdownOpen(false);
+                        }}
+                      >
+                        Wyloguj
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : status === "loading" ? (
+                <div className="flex items-center justify-center w-full">
+                  <Loader2 className="animate-spin text-color-tertiary" />
+                </div>
+              ) : (
+                <div className="flex items-center justify-end">
+                  <ButtonLink
+                    variant="default"
+                    className="ml-6"
+                    text="Rejestracja"
+                    href={"/registration"}
+                  />
+                  <ButtonLink
+                    variant="outline"
+                    className="ml-6"
+                    text="Logowanie"
+                    href={"/login"}
+                  />
+                </div>
+              )}
+            </div>
           </div>
           <div className="lg:hidden">
             <div className="z-10 relative">
@@ -92,25 +151,59 @@ export function Navigation({ logo, menuItems }: NavigationProps) {
                     )}
                   </div>
                 )}
-                {status === "authenticated" ? (
-                  <Button
-                    variant="outline"
-                    className="6"
-                    onClick={() => {
-                      signOut();
-                      setIsOpen(false);
-                    }}
-                  >
-                    Wyloguj
-                  </Button>
+                {status === "authenticated" && session?.user ? (
+                  <div className="flex flex-col items-center gap-4 mt-3">
+                    <NextImage
+                      className="mx-2 rounded-full w-10 h-10 object-cover"
+                      src={session.user.image || imagePlaceholder}
+                      alt={session.user.name || "User Image"}
+                      width={40}
+                      height={40}
+                      placeholder="empty"
+                      priority
+                    />
+                    <p className="font-bold">{session.user.name}</p>
+                    <ButtonLink
+                      variant="default"
+                      className="w-full max-w-[12.5rem]"
+                      text="Panel użytkownika"
+                      href={"/user"}
+                      onClick={() => {
+                        setIsOpen(false);
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full max-w-[12.5rem]"
+                      onClick={() => {
+                        signOut();
+                        setIsOpen(false);
+                      }}
+                    >
+                      Wyloguj
+                    </Button>
+                  </div>
                 ) : (
-                  <ButtonLink
-                    variant="outline"
-                    className="mt-4"
-                    text="Zaloguj"
-                    href={"/login"}
-                    onClick={() => setIsOpen(false)}
-                  />
+                  <div className="flex flex-col items-center gap-4 mt-3">
+                    <ButtonLink
+                      variant="default"
+                      className="w-full max-w-[12.5rem]"
+                      text="Rejestracja"
+                      href={"/registration"}
+                      onClick={() => {
+                        setIsOpen(false);
+                      }}
+                    />
+                    <ButtonLink
+                      variant="outline"
+                      className="w-full max-w-[12.5rem]"
+                      text="Logowanie"
+                      href={"/login"}
+                      onClick={() => {
+                        setIsOpen(false);
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             </div>

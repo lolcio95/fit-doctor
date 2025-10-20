@@ -5,6 +5,13 @@ import { authOptions } from "../../auth/authOptions";
 
 const prisma = new PrismaClient();
 
+function getUtcDayRangeFromDate(dateObj: Date) {
+  const startOfDay = new Date(Date.UTC(dateObj.getUTCFullYear(), dateObj.getUTCMonth(), dateObj.getUTCDate(), 0, 0, 0, 0));
+  const endOfDay = new Date(startOfDay.getTime());
+  endOfDay.setUTCHours(23, 59, 59, 999);
+  return { startOfDay, endOfDay };
+}
+
 export async function GET(req: NextRequest, ctx: any) {
   try {
     const session = await getServerSession(authOptions);
@@ -59,15 +66,37 @@ export async function PATCH(req: NextRequest, ctx: any) {
     }
 
     // Server-side guard: don't allow reverting a DONE training back to IN_PROGRESS
+    // Also: when trying to set status -> DONE, ensure there's no other DONE training for the same day (exclude current id)
     let statusToSet: TrainingStatus | undefined = undefined;
     if (typeof incomingStatus === "string") {
       if (incomingStatus === "DONE") {
+        // Determine day range to check (prefer body.date if provided, otherwise use training.date)
+        const targetDate = date ? new Date(date) : new Date(training.date);
+        const { startOfDay, endOfDay } = getUtcDayRangeFromDate(targetDate);
+
+        const existingDone = await prisma.training.findFirst({
+          where: {
+            userId: user.id,
+            status: TrainingStatus.DONE,
+            date: {
+              gte: startOfDay,
+              lte: endOfDay,
+            },
+            NOT: { id }, // exclude current training
+          },
+        });
+
+        if (existingDone) {
+          return NextResponse.json({ error: "Masz już trening tego dnia!" }, { status: 400 });
+        }
+
         statusToSet = TrainingStatus.DONE;
       } else if (incomingStatus === "IN_PROGRESS") {
+        // only allow IN_PROGRESS if training is not already DONE
         if (training.status !== TrainingStatus.DONE) {
           statusToSet = TrainingStatus.IN_PROGRESS;
         } else {
-          statusToSet = undefined;
+          statusToSet = undefined; // ignore incoming IN_PROGRESS to avoid overwriting a finished training
         }
       }
     }
