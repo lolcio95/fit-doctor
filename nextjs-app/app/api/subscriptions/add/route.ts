@@ -17,19 +17,11 @@ export async function POST(req: Request) {
   
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
-    // payment_method_types: ["card", "blik"],
     line_items: [{ price: priceId, quantity: 1 }],
     customer_email: email,
-    success_url: "http://localhost:3000",
-    cancel_url: "http://localhost:3000",
+    success_url: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    cancel_url: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
   });
 
   return NextResponse.json({ url: session.url });
 }
-
-// pobieranie danych po powrocie z checkout:
-// const session = await stripe.checkout.sessions.retrieve(sessionId, {
-//   expand: ["subscription"],
-// });
-
-// console.log(session.subscription);
