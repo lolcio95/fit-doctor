@@ -67,9 +67,10 @@ export const plans = withDefaultGroup(
                 type: 'string',
               },
               {
-                name: 'price',
-                title: 'Price',
-                type: 'number',
+                name: 'priceId',
+                title: 'Price ID',
+                description: 'Enter the Stripe Price ID for this plan',
+                type: 'string',
               },
               {
                 name: 'advantages',

@@ -1,7 +1,9 @@
+"use client";
 import SectionWrapper from "@/app/components/molecules/SectionWrapper";
 import { Plans as PlansProps } from "@/sanity.types";
-import { Button } from "@/app/components/atoms/Button";
-import clsx from "clsx";
+import { PlanCard } from "@/app/components/molecules/PlanCard";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 interface PlansSectionProps extends Omit<PlansProps, "_type"> {}
 
 export function PlansSection({
@@ -10,6 +12,36 @@ export function PlansSection({
   plans,
   backgroundColor,
 }: PlansSectionProps) {
+  const { data: sessionData } = useSession();
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [userPlanPrice, setUserPlanPrice] = useState<number | null>(null);
+  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  const [subscriptionItemId, setSubscriptionItemId] = useState<string | null>(
+    null
+  );
+  const [loading, setLoading] = useState(false);
+
+  const getUserPlan = async (email: string) => {
+    setLoading(true);
+    const res = await fetch("/api/plans/user-plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    setCurrentPlanId(data.plan?.id || null);
+    setUserPlanPrice(data.plan?.price || null);
+    setSubscriptionId(data.subscriptionId || null);
+    setSubscriptionItemId(data.subscriptionItemId || null);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (sessionData?.user?.email) {
+      getUserPlan(sessionData.user.email);
+    }
+  }, [sessionData?.user?.email]);
+
   return (
     <SectionWrapper
       backgroundColor={backgroundColor}
@@ -29,48 +61,15 @@ export function PlansSection({
       <div className="container mx-auto px-6 flex flex-wrap justify-center items-start gap-8">
         {plans &&
           plans.map((plan) => (
-            <div
+            <PlanCard
               key={plan._key}
-              className={clsx(
-                "group flex flex-col items-center mx-4 rounded-2xl bg-background-card w-[260px] px-4 pb-8 relative cursor-pointer transition-transform duration-300 hover:-translate-y-2",
-                {
-                  "border-2 border-color-secondary pt-12": plan.highlighted,
-                  "pt-8": !plan.highlighted,
-                }
-              )}
-            >
-              {plan.highlightedText && (
-                <div className="bg-color-secondary px-4 py-3 rounded-full mb-4 absolute top-[-22px]">
-                  <p className="text-sm text-color-primary font-bold">
-                    {plan.highlightedText}
-                  </p>
-                </div>
-              )}
-              <h3 className="text-2xl font-bold text-center mb-2 text-color-secondary">
-                {plan.title}
-              </h3>
-              <p className="text-color-primary font-bold text-2xl my-4">
-                {plan.price} zł
-                <span className="text-color-tertiary text-sm">/miesiąc</span>
-              </p>
-              {plan.advantages && (
-                <ul className="mb-0 space-y-2 w-full px-2">
-                  {plan.advantages.map((advantage) => (
-                    <li
-                      key={advantage}
-                      className="text-color-primary text-sm pl-6 relative before:content-['✓'] before:absolute before:left-0"
-                    >
-                      {advantage}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <Button
-                text="Wybierz plan"
-                className="w-full mt-6"
-                variant={plan.highlighted ? "default" : "outline"}
-              />
-            </div>
+              planData={plan}
+              planDataLoading={loading}
+              currentPlanId={currentPlanId}
+              currentPlanPrice={userPlanPrice}
+              currentSubscriptionId={subscriptionId}
+              subscriptionItemId={subscriptionItemId}
+            />
           ))}
       </div>
     </SectionWrapper>
