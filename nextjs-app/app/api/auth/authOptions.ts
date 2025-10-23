@@ -31,6 +31,11 @@ export const authOptions = {
           }
         });
         if (!user) return null;
+
+        if (!user.emailVerified) {
+          throw new Error('Musisz najpierw potwierdzić adres e-mail.');
+        }
+
         //@ts-ignore
         const passwordValid = await compare(credentials.password, user.password);
         if (!passwordValid) return null;
