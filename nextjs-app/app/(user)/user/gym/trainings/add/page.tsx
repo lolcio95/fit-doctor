@@ -38,7 +38,7 @@ export default function AddTrainingPage() {
         if (mounted) setExercises(Array.isArray(data) ? data : []);
       })
       .catch(() => {
-        if (mounted) setExercises([]); // treat as empty so user can still add exercises via link
+        if (mounted) setExercises([]);
       });
     return () => {
       mounted = false;
@@ -65,14 +65,13 @@ export default function AddTrainingPage() {
         setError(data.error || "Błąd przy dodawaniu treningu");
         return;
       }
-      router.push("/user/trainings");
+      router.push("/user/gym/trainings");
     } catch (err) {
       setLoading(false);
       setError("Błąd sieciowy. Spróbuj ponownie.");
     }
   };
 
-  // loading exercises
   if (exercises === null) {
     return (
       <section>
@@ -82,7 +81,6 @@ export default function AddTrainingPage() {
     );
   }
 
-  // no exercises in user's base -> show info and link to add exercises
   if (Array.isArray(exercises) && exercises.length === 0) {
     return (
       <section>
@@ -99,7 +97,7 @@ export default function AddTrainingPage() {
           <p>
             Aby dodać trening, najpierw dodaj ćwiczenia. Przejdź do strony{" "}
             <Link
-              href="/user/exercises"
+              href="/user/gym/exercises"
               style={{ color: "#7cc0ff", textDecoration: "underline" }}
             >
               Dodaj ćwiczenia
@@ -111,7 +109,6 @@ export default function AddTrainingPage() {
     );
   }
 
-  // normal form when exercises exist
   return (
     <section>
       <h2>Dodaj trening</h2>

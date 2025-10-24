@@ -19,20 +19,18 @@ export default function EditTrainingPage() {
   const id = params?.id as string | undefined;
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false); // manual save in DONE mode
-  const [autosaving, setAutosaving] = useState(false); // autosave indicator for IN_PROGRESS
+  const [saving, setSaving] = useState(false);
+  const [autosaving, setAutosaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [date, setDate] = useState("");
-  const [exercises, setExercises] = useState<any[]>([]); // user's exercise library
+  const [exercises, setExercises] = useState<any[]>([]);
   const [selectedExercises, setSelectedExercises] = useState<
     TrainingExerciseForm[]
   >([]);
   const [status, setStatus] = useState<"IN_PROGRESS" | "DONE" | string>("DONE");
 
-  // debounce ref for autosave
   const autosaveTimeout = useRef<number | null>(null);
-  // controller for in-flight autosave fetch so we can abort it
   const autosaveController = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
 
@@ -116,7 +114,6 @@ export default function EditTrainingPage() {
     };
   }, [id]);
 
-  // helper: cancel pending autosave timeout and abort in-flight autosave fetch
   const clearPendingAutosave = () => {
     if (autosaveTimeout.current) {
       window.clearTimeout(autosaveTimeout.current);
@@ -130,21 +127,17 @@ export default function EditTrainingPage() {
     }
   };
 
-  // autosave when training is IN_PROGRESS
   useEffect(() => {
     if (!id) return;
     if (status !== "IN_PROGRESS") return;
 
-    // debounce autosave
     if (autosaveTimeout.current) {
       window.clearTimeout(autosaveTimeout.current);
     }
 
-    // Do not autosave if still loading initial data
     if (loading) return;
 
     autosaveTimeout.current = window.setTimeout(async () => {
-      // abort any previous in-flight autosave just in case
       if (autosaveController.current) {
         try {
           autosaveController.current.abort();
@@ -215,7 +208,6 @@ export default function EditTrainingPage() {
     setSaving(true);
     setError(null);
     try {
-      // make sure no pending autosave will overwrite our final state: cancel timeout and abort in-flight
       clearPendingAutosave();
 
       const res = await fetch(`/api/trainings/${id}`, {
@@ -229,7 +221,7 @@ export default function EditTrainingPage() {
             sets: parseInt(s.sets, 10),
             reps: parseInt(s.reps, 10),
           })),
-          status: finalize ? "DONE" : status, // if finalize true -> DONE
+          status: finalize ? "DONE" : status,
         }),
       });
       setSaving(false);
@@ -239,7 +231,6 @@ export default function EditTrainingPage() {
         return false;
       }
 
-      // update local status if we finalized
       if (finalize) {
         setStatus("DONE");
       }
@@ -255,26 +246,20 @@ export default function EditTrainingPage() {
 
   const handleFinish = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    // Important: prevent any pending autosave from running and overwriting DONE
     clearPendingAutosave();
 
-    // Set local status to DONE immediately so autosave effect won't trigger again
     setStatus("DONE");
 
-    // Finish training: set status -> DONE and save (if no exercises -> error)
     const success = await handleSaveManual(true);
     if (success) {
-      // After finishing, navigate back to trainings list
-      router.push("/user/trainings");
+      router.push("/user/gym/trainings");
     } else {
-      // If save failed, revert status back to IN_PROGRESS so user can continue editing
       setStatus("IN_PROGRESS");
     }
   };
 
   const handleSaveChangesButton = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    // When training is DONE, user must click Save changes
     await handleSaveManual(false);
   };
 
@@ -283,7 +268,7 @@ export default function EditTrainingPage() {
     return (
       <section>
         <p style={{ color: "red" }}>{error}</p>
-        <Link href="/user/trainings">
+        <Link href="/user/gym/trainings">
           <button>Powrót</button>
         </Link>
       </section>
@@ -324,7 +309,6 @@ export default function EditTrainingPage() {
           exercises={exercises}
           selectedExercises={selectedExercises}
           setSelectedExercises={setSelectedExercises}
-          // onExerciseCreated={handleExerciseCreated}
         />
 
         {error && <div style={{ color: "red", marginBottom: 8 }}>{error}</div>}
@@ -341,7 +325,7 @@ export default function EditTrainingPage() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push("/user/trainings")}
+                onClick={() => router.push("/user/gym/trainings")}
                 style={{ marginLeft: 8 }}
               >
                 Anuluj
@@ -354,7 +338,7 @@ export default function EditTrainingPage() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push("/user/trainings")}
+                onClick={() => router.push("/user/gym/trainings")}
                 style={{ marginLeft: 8 }}
               >
                 Anuluj
