@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { Edit3, Trash2, Clock } from "lucide-react";
 
@@ -46,6 +46,20 @@ export default function TrainingList({
     }
   };
 
+  // ensure IN_PROGRESS trainings are always at the top, then sort others by date desc
+  const sortedTrainings = useMemo(() => {
+    return [...trainings].sort((a, b) => {
+      const aActive = a.status === "IN_PROGRESS";
+      const bActive = b.status === "IN_PROGRESS";
+      if (aActive && !bActive) return -1;
+      if (!aActive && bActive) return 1;
+      // if both same active state - sort by date desc (newest first)
+      const aTime = new Date(a.date).getTime();
+      const bTime = new Date(b.date).getTime();
+      return bTime - aTime;
+    });
+  }, [trainings]);
+
   if (loading) return <p className="text-color-tertiary">Ładowanie...</p>;
   if (!trainings?.length)
     return (
@@ -56,7 +70,7 @@ export default function TrainingList({
 
   return (
     <ul className="space-y-4">
-      {trainings.map((tr) => {
+      {sortedTrainings.map((tr) => {
         const isActive = tr.status === "IN_PROGRESS";
 
         return (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PlusCircle, X } from "lucide-react";
+import { PlusCircle, Trash2 } from "lucide-react";
 
 type TrainingExerciseForm = {
   exerciseId: string;
@@ -138,7 +138,7 @@ export default function TrainingExerciseInput({
               onClick={() => handleRemove(idx)}
               className="inline-flex items-center gap-2 px-2 py-1 rounded border hover:bg-red-50 text-red-500"
             >
-              <X className="w-4 h-4" />
+              <Trash2 className="w-4 h-4" />
             </button>
           </li>
         ))}
