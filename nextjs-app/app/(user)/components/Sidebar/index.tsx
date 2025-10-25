@@ -1,9 +1,14 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import NextImage from "next/image";
+import { usePathname } from "next/navigation";
+import Logo from "@/public/assets/logo.svg";
 import { HamburgerButton } from "@/app/components/atoms/HamburgerButton";
 
 const navItems = [
-  { href: "/user", label: "Dashboard" },
+  { href: "/user", label: "Panel użytkownika" },
   {
     label: "Siłownia",
     key: "gym",
@@ -14,19 +19,16 @@ const navItems = [
       { href: "/user/gym/progress", label: "Progres" },
     ],
   },
-  { href: "/user/settings", label: "Ustawienia" },
 ];
 
 export default function Sidebar() {
-  const [openKey, setOpenKey] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  const toggle = (key?: string) => {
-    if (!key) return;
-    console.log("toggling", key);
-    setOpenKey((prev) => (prev === key ? null : key));
-  };
+  // nowy ref - obejmuje DOM element zawierający HamburgerButton
+  const toggleRef = useRef<HTMLDivElement | null>(null);
+
+  const pathname = usePathname() || "/";
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -45,96 +47,95 @@ export default function Sidebar() {
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (!mobileOpen) return;
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setMobileOpen(false);
+
+      // jeśli kliknięto w panel => nic
+      if (panelRef.current && panelRef.current.contains(e.target as Node)) {
+        return;
       }
+      // jeśli kliknięto w toggle (hamburger) => nic, bo on sam przełącza stan
+      if (toggleRef.current && toggleRef.current.contains(e.target as Node)) {
+        return;
+      }
+
+      // w przeciwnym razie zamykamy panel
+      setMobileOpen(false);
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, [mobileOpen]);
 
-  // helper: when user clicks a nav link on mobile, close the slide-over
   const handleNavClickOnMobile = () => {
     if (mobileOpen) setMobileOpen(false);
   };
 
+  // helper: prefix-check for parent items (should highlight parent when on its children)
+  const isPrefixActive = (href?: string) => {
+    if (!href) return false;
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
   const SidebarContent = (
-    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+    <ul className="m-0 p-0" style={{ listStyle: "none" }}>
       {navItems.map((item) => {
         if ("children" in item) {
-          const isOpen = openKey === item.key;
           return (
-            <li key={item.key} style={{ marginBottom: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <li key={item.key} className="mb-4">
+              <div className="flex items-center justify-between mb-2">
                 <Link
                   href={item.href ?? "/user/gym"}
                   onClick={handleNavClickOnMobile}
-                  className="text-color-primary font-bold"
-                  style={{
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                    flex: 1,
-                    textAlign: "left",
-                    padding: "8px 0",
-                    display: "block",
-                  }}
+                  className={`block text-left w-full px-2 py-1 rounded-md ${
+                    isPrefixActive(item.href)
+                      ? "bg-color-primary text-background-primary font-semibold"
+                      : "text-color-primary"
+                  }`}
+                  style={{ textDecoration: "none" }}
                 >
                   {item.label}
                 </Link>
-                <button
-                  onClick={() => toggle(item.key)}
-                  aria-expanded={isOpen}
-                  aria-label={`${item.label} toggle`}
-                  className="text-color-primary font-bold"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "6px",
-                    opacity: 0.8,
-                  }}
-                >
-                  <span>{isOpen ? "▾" : "▸"}</span>
-                </button>
               </div>
-              {isOpen && (
-                <ul
-                  style={{
-                    listStyle: "none",
-                    padding: "8px 0 0 12px",
-                    margin: 0,
-                  }}
-                >
-                  {item.children.map((child) => (
-                    <li key={child.href} style={{ marginBottom: 12 }}>
+
+              {/* children always expanded; grid on larger screens */}
+              <ul
+                className="flex flex-col gap-2 pl-3 m-0"
+                style={{ listStyle: "none" }}
+              >
+                {item.children?.map((child) => {
+                  const active = isPrefixActive(child.href);
+                  return (
+                    <li key={child.href}>
                       <Link
                         href={child.href}
                         onClick={handleNavClickOnMobile}
-                        className="text-color-tertiary"
-                        style={{
-                          textDecoration: "none",
-                        }}
+                        className={`block w-full rounded-md px-3 py-2 text-sm transition ${
+                          active
+                            ? "bg-color-primary text-background-primary shadow-sm"
+                            : "text-color-tertiary hover:bg-background-primary"
+                        }`}
+                        style={{ textDecoration: "none" }}
                       >
                         {child.label}
                       </Link>
                     </li>
-                  ))}
-                </ul>
-              )}
+                  );
+                })}
+              </ul>
             </li>
           );
         }
 
+        const active = pathname === item.href;
         return (
-          <li key={item.href} style={{ marginBottom: 16 }}>
+          <li key={item.href} className="mb-4">
             <Link
               href={item.href}
               onClick={handleNavClickOnMobile}
-              className="text-color-primary font-bold"
-              style={{
-                textDecoration: "none",
-                fontWeight: "bold",
-              }}
+              className={`block w-full rounded-md px-2 py-2 ${
+                active
+                  ? "bg-color-primary text-background-primary font-semibold"
+                  : "text-color-primary hover:bg-background-primary"
+              }`}
+              style={{ textDecoration: "none" }}
             >
               {item.label}
             </Link>
@@ -146,15 +147,12 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* mobile hamburger (visible < lg) - fixed for easy reach */}
-      <div className="lg:hidden fixed top-4 right-4 z-50">
-        <HamburgerButton
-          isOpen={mobileOpen}
-          setIsOpen={() => setMobileOpen(!mobileOpen)}
-        />
+      {/* mobile hamburger (visible < lg) */}
+      {/* owijamy HamburgerButton w div z refem toggleRef */}
+      <div ref={toggleRef} className="lg:hidden fixed top-4 right-4 z-50">
+        <HamburgerButton isOpen={mobileOpen} setIsOpen={setMobileOpen} />
       </div>
 
-      {/* spacer so page content is pushed below the fixed hamburger on mobile */}
       <div className="lg:hidden h-12" aria-hidden />
 
       {/* mobile slide-over panel */}
@@ -164,34 +162,56 @@ export default function Sidebar() {
           mobileOpen ? "pointer-events-auto" : "pointer-events-none"
         }`}
       >
-        {/* backdrop */}
         <div
           className={`absolute inset-0 bg-black/50 transition-opacity duration-200 ${
             mobileOpen ? "opacity-100" : "opacity-0"
           }`}
         />
-        {/* panel */}
         <aside
           ref={panelRef}
-          className={`absolute left-0 top-0 h-full w-64 bg-background-card px-6 pt-8 shadow-lg transform transition-transform duration-300 ${
+          className={`absolute left-0 top-0 h-full w-58 bg-background-card px-4 pt-6 shadow-lg transform transition-transform duration-300 ${
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           aria-label="Sidebar"
         >
+          <div className="w-full flex justify-center pb-6">
+            <Link href="/">
+              <NextImage
+                src={Logo}
+                alt="fit doctor logo"
+                width={140}
+                height={48}
+                placeholder="empty"
+                priority
+              />
+            </Link>
+          </div>
           {SidebarContent}
         </aside>
       </div>
 
-      {/* desktop sidebar (visible >= lg) */}
+      {/* desktop sidebar */}
       <nav
         className="hidden lg:block bg-background-card"
         style={{
           width: "220px",
-          padding: "2rem 1rem",
+          padding: ".9375rem 1rem",
           minHeight: "100vh",
         }}
         aria-label="Sidebar"
       >
+        <div className="w-full flex justify-center pb-6">
+          <Link href="/">
+            <NextImage
+              src={Logo}
+              alt="fit doctor logo"
+              width={140}
+              height={48}
+              placeholder="empty"
+              priority
+            />
+          </Link>
+        </div>
         {SidebarContent}
       </nav>
     </>

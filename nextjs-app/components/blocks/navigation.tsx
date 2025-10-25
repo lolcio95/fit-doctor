@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { MediaImage } from "@/app/components/atoms/MediaImage";
 import { BaseImageProps } from "@/app/components/atoms/BaseImage/types";
@@ -25,10 +25,22 @@ export function Navigation({ logo, menuItems }: NavigationProps) {
   const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
 
   const handleUserClick = () => {
     setIsUserDropdownOpen((prevState) => !prevState);
   };
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (!isUserDropdownOpen) return;
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setIsUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [isUserDropdownOpen]);
 
   return (
     <nav className="bg-background-secondary sticky top-0 isolate z-50 py-0 lg:py-0 h-14 lg:h-20 flex justify-center items-center">
@@ -60,7 +72,7 @@ export function Navigation({ logo, menuItems }: NavigationProps) {
                 )}
               </div>
             )}
-            <div className="w-[270px] select-none">
+            <div ref={panelRef} className="w-[270px] select-none">
               {status === "authenticated" && session?.user ? (
                 <div
                   className="flex items-center cursor-pointer relative justify-end"
@@ -82,26 +94,51 @@ export function Navigation({ logo, menuItems }: NavigationProps) {
                     })}
                   />
                   {isUserDropdownOpen && (
-                    <div className="w-full p-4 bg-background-card border-1 rounded-md border-color-tertiary absolute bottom-0 left-0 translate-y-[calc(100%+10px)]">
-                      <ButtonLink
-                        variant="link"
-                        className="w-full"
-                        text={"Panel użytkownika"}
-                        href={"/user"}
-                        onClick={() => {
-                          setIsUserDropdownOpen(false);
-                        }}
-                      />
-                      <Button
-                        variant="link"
-                        className="w-full"
-                        onClick={() => {
-                          signOut();
-                          setIsUserDropdownOpen(false);
-                        }}
-                      >
-                        Wyloguj
-                      </Button>
+                    <div className="w-full max-w-xs bg-background-card border border-background-card/50 rounded-lg shadow-xl absolute bottom-0 left-0 translate-y-[calc(100%+10px)] z-50 overflow-hidden">
+                      {/* header with avatar */}
+                      <div className="flex items-center gap-3 px-4 py-3">
+                        <NextImage
+                          src={session.user.image || imagePlaceholder}
+                          alt={session.user.name || "User"}
+                          width={40}
+                          height={40}
+                          className="rounded-full object-cover"
+                          placeholder="empty"
+                          priority
+                        />
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-color-primary truncate">
+                            {session.user.name}
+                          </div>
+                          {session.user.email && (
+                            <div className="text-xs text-color-tertiary truncate">
+                              {session.user.email}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="border-t border-background-primary/20">
+                        <div className="flex flex-col p-2 gap-2">
+                          <Link
+                            className="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-color-tertiary hover:text-background-secondary hover:bg-color-tertiary transition"
+                            href="/user"
+                            onClick={() => setIsUserDropdownOpen(false)}
+                          >
+                            Panel użytkownika
+                          </Link>
+
+                          <button
+                            onClick={() => {
+                              signOut();
+                              setIsUserDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-md text-sm text-red-600 hover:bg-color-tertiary transition"
+                          >
+                            Wyloguj
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
