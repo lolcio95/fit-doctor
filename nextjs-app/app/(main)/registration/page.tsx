@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
@@ -16,16 +15,23 @@ type FormValues = {
 };
 
 export default function RegistrationPage() {
-  const router = useRouter();
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
+    setFocus,
   } = useForm<FormValues>({
     mode: "onBlur",
   });
+
+  const clearPasswordField = () => {
+    setValue("password", "");
+    setValue("confirmPassword", "");
+    setFocus("password");
+  };
 
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
@@ -55,6 +61,7 @@ export default function RegistrationPage() {
 
       if (!res.ok) {
         setServerError(json?.error || "Wystąpił błąd podczas rejestracji.");
+        clearPasswordField();
         return;
       }
 
@@ -62,10 +69,10 @@ export default function RegistrationPage() {
         "Rejestracja udana! Sprawdź swój e‑mail, aby potwierdzić konto."
       );
       reset();
-      setTimeout(() => router.push("/login"), 3000);
     } catch (err) {
       console.error("Registration error:", err);
       setServerError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.");
+      clearPasswordField();
     }
   };
 

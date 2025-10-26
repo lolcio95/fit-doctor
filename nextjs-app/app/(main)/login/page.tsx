@@ -1,5 +1,5 @@
 "use client";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,6 @@ type FormValues = {
 };
 
 export default function LoginPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -22,10 +21,17 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setValue,
+    setFocus,
   } = useForm<FormValues>({
     defaultValues: { username: "", password: "" },
     mode: "onBlur",
   });
+
+  const clearPasswordField = () => {
+    setValue("password", "");
+    setFocus("password");
+  };
 
   const onSubmit = async (values: FormValues) => {
     setServerError(null);
@@ -47,6 +53,7 @@ export default function LoginPage() {
             ? "Nieprawidłowy login lub hasło."
             : cleaned;
         setServerError(friendly);
+        clearPasswordField();
         return;
       }
 
@@ -64,96 +71,95 @@ export default function LoginPage() {
       className="bg-background-primary py-16 md:py-24"
       aria-labelledby="article-title"
     >
-      {status === "unauthenticated" ? (
-        <>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-6 max-w-xs mx-auto mb-4"
-            noValidate
-          >
-            <div className="relative">
-              <input
-                {...register("username", {
-                  required: "Email lub nazwa użytkownika jest wymagana",
-                  maxLength: { value: 100, message: "Maksymalnie 100 znaków" },
-                })}
-                type="text"
-                placeholder="Email lub nazwa użytkownika"
-                className="border rounded px-3 py-2 w-full"
-                aria-invalid={errors.username ? "true" : "false"}
-              />
-              {errors.username && (
-                <div className="absolute left-0 right-0 bottom-[1px] translate-y-[100%]">
-                  <p className="text-red-600 text-xs mt-1">
-                    {errors.username.message}
-                  </p>
-                </div>
-              )}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col gap-6 max-w-xs mx-auto mb-4"
+        noValidate
+      >
+        <div className="relative">
+          <input
+            {...register("username", {
+              required: "Email lub nazwa użytkownika jest wymagana",
+              maxLength: { value: 100, message: "Maksymalnie 100 znaków" },
+            })}
+            type="text"
+            placeholder="Email lub nazwa użytkownika"
+            className="border rounded px-3 py-2 w-full"
+            aria-invalid={errors.username ? "true" : "false"}
+          />
+          {errors.username && (
+            <div className="absolute left-0 right-0 bottom-[1px] translate-y-[100%]">
+              <p className="text-red-600 text-xs mt-1">
+                {errors.username.message}
+              </p>
             </div>
-
-            <div className="relative">
-              <input
-                {...register("password", {
-                  required: "Hasło jest wymagane",
-                  minLength: { value: 6, message: "Minimum 6 znaków" },
-                  maxLength: { value: 128, message: "Maksymalnie 128 znaków" },
-                })}
-                type="password"
-                placeholder="Hasło"
-                className="border rounded px-3 py-2 w-full"
-                aria-invalid={errors.password ? "true" : "false"}
-              />
-              {errors.password && (
-                <div className="absolute left-0 right-0 bottom-[1px] translate-y-[100%]">
-                  <p className="text-red-600 text-xs mt-1">
-                    {errors.password.message}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Logowanie..." : "Zaloguj się"}
-            </Button>
-
-            {serverError && (
-              <div className="text-red-600 text-center mt-[-10px]">
-                {serverError}
-              </div>
-            )}
-          </form>
-
-          <div className="flex flex-col gap-4 max-w-xs mx-auto mb-10">
-            <Button
-              variant={"default"}
-              className="bg-color-primary gap-0 text-background-primary hover-never:bg-color-tertiary"
-              onClick={() => signIn("google", { callbackUrl: "/" })}
-            >
-              <NextImage
-                className="mx-2 rounded-full w-6 h-6 object-cover"
-                src={googleLogo}
-                alt="Google Logo"
-                width={40}
-                height={40}
-                placeholder="empty"
-                priority
-              />
-              Zaloguj się przez Google
-            </Button>
-
-            <ButtonLink
-              href="/registration"
-              className="underline w-full"
-              variant={"link"}
-              text="Nie masz konta? Zarejestruj się"
-            />
-          </div>
-        </>
-      ) : (
-        <div className="max-w-xs mx-auto">
-          <Button onClick={() => signOut()}>Wyloguj się</Button>
+          )}
         </div>
-      )}
+
+        <div className="relative">
+          <input
+            {...register("password", {
+              required: "Hasło jest wymagane",
+              minLength: { value: 6, message: "Minimum 6 znaków" },
+              maxLength: { value: 128, message: "Maksymalnie 128 znaków" },
+            })}
+            type="password"
+            placeholder="Hasło"
+            className="border rounded px-3 py-2 w-full"
+            aria-invalid={errors.password ? "true" : "false"}
+          />
+          {errors.password && (
+            <div className="absolute left-0 right-0 bottom-[1px] translate-y-[100%]">
+              <p className="text-red-600 text-xs mt-1">
+                {errors.password.message}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? "Logowanie..." : "Zaloguj się"}
+        </Button>
+
+        {serverError && (
+          <div className="text-red-600 text-center mt-[-10px]">
+            {serverError}
+          </div>
+        )}
+      </form>
+
+      <div className="flex flex-col gap-4 max-w-xs mx-auto mb-10">
+        <Button
+          variant={"default"}
+          className="bg-color-primary gap-0 text-background-primary hover-never:bg-color-tertiary"
+          onClick={() => signIn("google", { callbackUrl: "/" })}
+        >
+          <NextImage
+            className="mx-2 rounded-full w-6 h-6 object-cover"
+            src={googleLogo}
+            alt="Google Logo"
+            width={40}
+            height={40}
+            placeholder="empty"
+            priority
+          />
+          Zaloguj się przez Google
+        </Button>
+        <div>
+          <ButtonLink
+            href="/registration"
+            className="underline w-full"
+            variant={"link"}
+            text="Nie masz konta? Zarejestruj się"
+          />
+          <ButtonLink
+            href="/forgot-password"
+            className="underline w-full"
+            variant={"link"}
+            text="Zapomniałem hasła"
+          />
+        </div>
+      </div>
     </section>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Plans } from "@/sanity.types";
 import { Button } from "@/app/components/atoms/Button";
 import clsx from "clsx";
@@ -37,7 +37,7 @@ export const PlanCard = ({
   const isDataLoading =
     planDataLoading || loading || sessionStatus === "loading";
 
-  const fetchProductByPrice = async () => {
+  const fetchProductByPrice = useCallback(async () => {
     setLoading(true);
     const res = await fetch("/api/plans/product-by-price-id", {
       method: "POST",
@@ -49,11 +49,11 @@ export const PlanCard = ({
     setPrice(data.product.price / 100);
     setPlanId(data.product.id);
     setLoading(false);
-  };
+  }, [priceId, sessionData?.user?.email]);
 
   useEffect(() => {
     fetchProductByPrice();
-  }, []);
+  }, [fetchProductByPrice]);
 
   const handleSelectPlan = async () => {
     if (sessionStatus !== "authenticated") {

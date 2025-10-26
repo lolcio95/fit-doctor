@@ -19,18 +19,20 @@ enum TrainingStatus {
 }
 
 model User {
-  id            String      @id @default(auto()) @map("_id") @db.ObjectId
-  name          String?
-  email         String?     @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?     // null dla Google, string dla własnych kont
-  accounts      Account[]
-  sessions      Session[]
-  exercises     Exercise[]
-  trainings     Training[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  name              String?     @unique
+  email             String?     @unique
+  emailVerified     DateTime?
+  image             String?
+  password          String?     // null for Google
+  passwordChangedAt DateTime?
+  accounts          Account[]
+  sessions          Session[]
+  exercises         Exercise[]
+  trainings         Training[]
+  passwordResetTokens PasswordResetToken[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
 model Account {
@@ -64,6 +66,20 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+}
+
+model PasswordResetToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  userId     String?  @db.ObjectId
+  user       User?    @relation(fields: [userId], references: [id])
+  tokenHash  String   @unique
+  expires    DateTime
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([identifier])
+  @@index([userId])
 }
 
 model Exercise {
