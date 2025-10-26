@@ -1,5 +1,5 @@
 "use client";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,6 @@ type FormValues = {
 };
 
 export default function LoginPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -146,13 +145,20 @@ export default function LoginPage() {
           />
           Zaloguj się przez Google
         </Button>
-
-        <ButtonLink
-          href="/registration"
-          className="underline w-full"
-          variant={"link"}
-          text="Nie masz konta? Zarejestruj się"
-        />
+        <div>
+          <ButtonLink
+            href="/registration"
+            className="underline w-full"
+            variant={"link"}
+            text="Nie masz konta? Zarejestruj się"
+          />
+          <ButtonLink
+            href="/forgot-password"
+            className="underline w-full"
+            variant={"link"}
+            text="Zapomniałem hasła"
+          />
+        </div>
       </div>
     </section>
   );

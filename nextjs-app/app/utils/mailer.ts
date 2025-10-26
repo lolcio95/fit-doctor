@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
-export const sendVerificationEmail = async (
+export const sendEmail = async (
   {to, from, subject, html}: 
   {to: string; from: string; subject: string; html: string;}
 ) => {
@@ -18,6 +18,6 @@ export const sendVerificationEmail = async (
       html,
     });
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    console.error('Error sending email:', error);
   }
 };

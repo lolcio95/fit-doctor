@@ -1,18 +1,20 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { compare } from 'bcryptjs';
-import { SessionStrategy } from 'next-auth';
+import { compare } from "bcryptjs";
+import type { NextAuthOptions } from "next-auth";
+import { SessionStrategy } from "next-auth";
+import { callbacks } from "@/lib/next-auth-callbacks";
 
 const prisma = new PrismaClient();
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
-      clientId: process.env.NEXT_PUBLIC_AUTH_GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.NEXT_PUBLIC_GOOGLE_AUTH_SECRET!,
+      clientId: process.env.NEXT_PUBLIC_AUTH_GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.NEXT_PUBLIC_GOOGLE_AUTH_SECRET ?? "",
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -22,33 +24,39 @@ export const authOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null;
+
+        const username = credentials.username.toLowerCase();
         const user = await prisma.user.findFirst({
           where: {
             OR: [
-              { email: credentials.username.toLowerCase() },
-              { name: credentials.username }
-            ]
-          }
+              { email: username },
+              { name: credentials.username },
+            ],
+          },
         });
+
         if (!user) return null;
 
         if (!user.emailVerified) {
-          throw new Error('Musisz najpierw potwierdzić adres e-mail.');
+          throw new Error("Musisz najpierw potwierdzić adres e-mail.");
         }
 
-        //@ts-ignore
+        if (!user.password) return null;
+
         const passwordValid = await compare(credentials.password, user.password);
         if (!passwordValid) return null;
+
         return {
           id: user.id,
-          name: user.name,
-          email: user.email,
-        };
+          name: user.name ?? undefined,
+          email: user.email ?? undefined,
+        } as any;
       },
     }),
   ],
-  secret: process.env.NEXT_PUBLIC_AUTH_SECRET,
+  secret: process.env.NEXT_PUBLIC_AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "",
   session: {
     strategy: "jwt" as SessionStrategy,
   },
+  callbacks,
 };

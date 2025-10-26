@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { sendVerificationEmail } from '@/app/utils/mailer';
+import { sendEmail } from '@/app/utils/mailer';
 
 const prisma = new PrismaClient();
 
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     `;
 
     try {
-      await sendVerificationEmail({to: normalizedEmail, from: `Fit Doctor <${process.env.NEXT_PUBLIC_EMAIL_FROM}>`, subject: 'Rejestracja konta', html});
+      await sendEmail({to: normalizedEmail, from: `Fit Doctor <${process.env.NEXT_PUBLIC_EMAIL_FROM}>`, subject: 'Rejestracja konta', html});
     } catch (mailErr) {
       console.error('Mailer error:', mailErr);
       // delete user if e-mail not send
