@@ -25,7 +25,7 @@ export const authOptions = {
         const user = await prisma.user.findFirst({
           where: {
             OR: [
-              { email: credentials.username },
+              { email: credentials.username.toLowerCase() },
               { name: credentials.username }
             ]
           }
