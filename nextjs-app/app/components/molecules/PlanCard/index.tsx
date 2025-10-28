@@ -6,6 +6,8 @@ import clsx from "clsx";
 import { useSession } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import PaymentModal from "./compoments/PaymentModal";
+import ConfirmModal from "./compoments/ConfirmModal";
 
 type PlanItem = NonNullable<Plans["plans"]>[number];
 
@@ -96,7 +98,7 @@ export const PlanCard = ({
     setModalError(null);
   };
 
-  const handleSubscriptionPurchase = async () => {
+  const handleSubscriptionPurchase = async (phone?: string) => {
     setModalError(null);
     setModalLoading(true);
 
@@ -104,7 +106,11 @@ export const PlanCard = ({
       const res = await fetch("/api/subscriptions/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId, email: sessionData?.user?.email }),
+        body: JSON.stringify({
+          priceId,
+          email: sessionData?.user?.email,
+          phone,
+        }),
       });
 
       if (!res.ok) {
@@ -130,7 +136,7 @@ export const PlanCard = ({
     }
   };
 
-  const handleOneTimePurchase = async () => {
+  const handleOneTimePurchase = async (phone?: string) => {
     setModalError(null);
     setModalLoading(true);
 
@@ -142,6 +148,7 @@ export const PlanCard = ({
           priceId: priceIdOneTime,
           email: sessionData?.user?.email,
           quantity: 1,
+          phone,
         }),
       });
 
@@ -292,114 +299,25 @@ export const PlanCard = ({
         )}
       </div>
 
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="w-full max-w-md rounded-lg bg-background-card p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-bold">Wybierz metodę płatności</h4>
-              <button
-                onClick={closeModal}
-                aria-label="Zamknij"
-                className="text-color-tertiary hover:opacity-80"
-                disabled={modalLoading}
-              >
-                ✕
-              </button>
-            </div>
+      <PaymentModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        loading={modalLoading}
+        error={modalError}
+        onOneTime={(phone?: string) => void handleOneTimePurchase(phone)}
+        onSubscription={(phone?: string) =>
+          void handleSubscriptionPurchase(phone)
+        }
+      />
 
-            <p className="text-sm text-color-primary mb-4">
-              Możesz zapłacić jednorazowo lub wykupić comiesięczną subskrypcję.
-            </p>
-
-            {modalError && (
-              <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
-                {modalError}
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <div className="flex flex-col gap-2">
-                <Button
-                  text={
-                    modalLoading ? "Przekierowuję..." : "Płatność jednorazowa"
-                  }
-                  className="w-full"
-                  variant="default"
-                  onClick={handleOneTimePurchase}
-                  disabled={modalLoading}
-                />
-                <Button
-                  text={
-                    modalLoading
-                      ? "Przekierowuję..."
-                      : "Płatność cykliczna (subskrypcja)"
-                  }
-                  className="w-full"
-                  variant={"outline"}
-                  onClick={handleSubscriptionPurchase}
-                  disabled={modalLoading}
-                />
-              </div>
-
-              <div className="mt-2 text-right">
-                <button
-                  onClick={closeModal}
-                  className="text-sm text-color-tertiary underline"
-                  disabled={modalLoading}
-                >
-                  Anuluj
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isConfirmOpen && (
-        <div
-          className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="w-full max-w-sm rounded-lg bg-background-card p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-bold">Potwierdź aktualizację</h4>
-            </div>
-
-            <p className="text-sm text-color-primary mb-4">
-              Czy na pewno chcesz zaktualizować swój plan na &quot;{title}
-              &quot;?
-            </p>
-
-            {confirmError && (
-              <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
-                {confirmError}
-              </div>
-            )}
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={closeConfirmModal}
-                className="px-4 py-2 rounded bg-transparent text-color-tertiary underline"
-                disabled={confirmLoading}
-              >
-                Anuluj
-              </button>
-              <Button
-                text={confirmLoading ? "Aktualizuję..." : "OK"}
-                className="px-4 py-2"
-                variant="default"
-                onClick={handleChangePlan}
-                disabled={confirmLoading}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={closeConfirmModal}
+        loading={confirmLoading}
+        error={confirmError}
+        onConfirm={() => void handleChangePlan()}
+        title={title}
+      />
     </>
   );
 };
