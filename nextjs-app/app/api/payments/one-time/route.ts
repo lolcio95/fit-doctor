@@ -34,9 +34,10 @@ export async function POST(req: Request) {
     }
 
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode: "payment",
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: email,
+      payment_method_types: ["card", "p24", "blik"],
       success_url: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
       cancel_url: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
       metadata: {
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
-    console.error("POST /api/subscriptions/add error:", err);
+    console.error("POST /api/payments/one-time error:", err);
     return NextResponse.json({ error: "Błąd serwera." }, { status: 500 });
   }
 }
