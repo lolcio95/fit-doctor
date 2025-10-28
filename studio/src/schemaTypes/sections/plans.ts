@@ -68,8 +68,14 @@ export const plans = withDefaultGroup(
               },
               {
                 name: 'priceId',
-                title: 'Price ID',
-                description: 'Enter the Stripe Price ID for this plan',
+                title: 'Price ID - subscription',
+                description: 'Enter the Stripe Price ID for this plan (subscription)',
+                type: 'string',
+              },
+              {
+                name: 'priceIdOneTime',
+                title: 'Price ID - one time',
+                description: 'Enter the Stripe Price ID for this plan (one time)',
                 type: 'string',
               },
               {

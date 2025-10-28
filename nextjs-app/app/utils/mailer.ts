@@ -4,16 +4,17 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export const sendEmail = async (
   {to, from, subject, html}: 
-  {to: string; from: string; subject: string; html: string;}
+  {to: string | string[]; from: string; subject: string; html: string;}
 ) => {
   if (!process.env.NEXT_PUBLIC_BASE_URL) {
-    throw new Error('NEXT_PUBLIC_BASE_URL is not set in env');
+    throw new Error("NEXT_PUBLIC_BASE_URL is not set in env");
   }
 
   try {
     await resend.emails.send({
       from,
       to,
+      bcc: Array.isArray(to) ? to : [],
       subject,
       html,
     });

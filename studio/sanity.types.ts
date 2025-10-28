@@ -68,6 +68,7 @@ export type Plans = {
     highlightedText?: string
     title?: string
     priceId?: string
+    priceIdOneTime?: string
     advantages?: Array<string>
     _type: 'Card'
     _key: string
