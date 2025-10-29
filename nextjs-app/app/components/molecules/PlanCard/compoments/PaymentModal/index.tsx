@@ -19,31 +19,53 @@ type FormValues = {
 };
 
 /**
- * Format display:
- * - If user types starting with '+', keep '+' and group remaining digits as "+CC XXX XXX ..."
- * - If no '+', group digits in sets of 3: "600 000 000"
- *
- * Normalization for sending:
- * - If starts with '+': return '+' + digits
- * - Else: assume polish national number -> return '+48' + digits
+ * Behavior:
+ * - While typing allow leading '+' and preserve input for non-+48 codes (don't aggressively reformat).
+ * - For +48 format as "+48 123 456 789".
+ * - On submit validate only two accepted formats:
+ *   * "+48 123 456 789"
+ *   * "123 456 789"
+ * - If no + provided on submit, assume +48 when normalizing for sending.
  */
 
+const group3 = (s: string) => {
+  if (!s) return "";
+  return s.match(/.{1,3}/g)?.join(" ") ?? s;
+};
+
 const formatDisplayPhone = (raw: string) => {
-  if (!raw) return "";
-  const hasPlus = raw.trim().startsWith("+");
-  // keep only digits for grouping
-  const digits = raw.replace(/\D/g, "");
+  if (raw == null) return "";
+  const trimmed = raw.trim();
+
+  // preserve leading plus while typing, but format digits in groups of 3 for +48
+  const hasPlus = trimmed.startsWith("+");
+  const digitsOnly = trimmed.replace(/\D/g, "");
+
   if (hasPlus) {
-    // assume first two digits country code for nicer layout if available
-    if (digits.length <= 2) return `+${digits}`;
-    const cc = digits.slice(0, 2);
-    const rest = digits.slice(2);
-    const groupedRest = rest.match(/.{1,3}/g)?.join(" ") ?? rest;
-    return `+${cc}${groupedRest ? " " + groupedRest : ""}`;
+    // If no digits yet, keep the plus so user can type it
+    if (!digitsOnly) return "+";
+
+    // If digits start with 48 -> format as Polish number
+    if (digitsOnly.startsWith("48")) {
+      const rest = digitsOnly.slice(2, 11); // up to 9 national digits
+      const groupedRest = group3(rest);
+      return `+48${groupedRest ? " " + groupedRest : ""}`;
+    }
+
+    // For other country codes: preserve user's spacing as much as possible.
+    // Remove any characters other than digits and spaces from the part after '+',
+    // collapse multiple spaces to single space and trim.
+    const afterPlus = raw
+      .replace(/^\+/, "") // remove leading + (we'll add it back)
+      .replace(/[^\d\s]/g, "") // keep only digits and spaces
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return `+${afterPlus}`;
   } else {
-    // national grouping: groups of 3 from start
-    const grouped = digits.match(/.{1,3}/g)?.join(" ") ?? digits;
-    return grouped;
+    // national formatting: up to 9 digits grouped by 3
+    const national = digitsOnly.slice(0, 9);
+    return group3(national);
   }
 };
 
@@ -53,17 +75,26 @@ const normalizePhoneForSending = (
   if (!display) return undefined;
   const trimmed = display.trim();
   if (!trimmed) return undefined;
-  const hasPlus = trimmed.startsWith("+");
-  const digits = trimmed.replace(/\D/g, "");
+
+  // Remove spaces
+  const noSpaces = trimmed.replace(/\s+/g, "");
+  const hasPlus = noSpaces.startsWith("+");
+  const digits = noSpaces.replace(/\D/g, "");
   if (!digits) return undefined;
+
   if (hasPlus) {
-    // return + and digits
+    // only accept +48... here because display validation enforces +48 if plus used
+    if (!digits.startsWith("48")) return undefined;
     return `+${digits}`;
   } else {
     // assume Poland if no +
     return `+48${digits}`;
   }
 };
+
+// Accept either exactly +48 then 9 digits (spaces optional) or 9 digits (spaces optional).
+const phoneDisplayRegex =
+  /^(?:\+48\s?\d{3}\s?\d{3}\s?\d{3}|\d{3}\s?\d{3}\s?\d{3})$/;
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
   isOpen,
@@ -83,18 +114,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: { email: "", phone: "" },
+    // default react-hook-form mode is onSubmit, so validation will run on submit
   });
 
   const phoneValue = watch("phone");
 
-  // register validation rules for phone (required + digit length)
+  // register validation rules for phone (required + exact format) — validation runs on submit
   const phoneRegister = register("phone", {
     required: "Numer telefonu jest wymagany",
     validate: (value: string) => {
-      const digits = value?.replace(/\D/g, "") ?? "";
-      if (!digits) return "Numer telefonu jest wymagany";
-      if (digits.length < 7) return "Numer musi mieć co najmniej 7 cyfr";
-      if (digits.length > 15) return "Numer jest zbyt długi";
+      const v = (value ?? "").trim();
+      if (!v) return "Numer telefonu jest wymagany";
+      // Accept only two formats on submit: "+48 123 456 789" or "123 456 789"
+      if (!phoneDisplayRegex.test(v)) {
+        return "Numer telefonu może być napisany tylko w takim formacie +48 123 456 789 lub 123 456 789";
+      }
       return true;
     },
   });
@@ -176,13 +210,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 value={phoneValue ?? ""}
                 onChange={(e) => {
                   const raw = e.target.value;
+                  // Format input live and preserve leading '+' while typing.
+                  // IMPORTANT: do not validate during typing -> shouldValidate: false
                   const formatted = formatDisplayPhone(raw);
                   setValue("phone", formatted, {
-                    shouldValidate: true,
+                    shouldValidate: false,
                     shouldDirty: true,
                   });
                 }}
-                placeholder="np. 600 000 000 (lub +48 600 000 000)"
+                placeholder="+48 123 456 789 lub 123 456 789"
                 inputMode="tel"
               />
               {errors.phone && (
@@ -209,12 +245,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   className="w-full"
                   variant="default"
                   onClick={handleSubmit(({ phone }) => {
-                    // phone is required by validation; normalize and send
+                    // phone validation runs here (on submit). normalize and send
                     const normalized = normalizePhoneForSending(phone);
                     if (!normalized) {
                       // fallback safety
                       // eslint-disable-next-line no-alert
-                      alert("Niepoprawny numer telefonu.");
+                      alert(
+                        "Niepoprawny numer telefonu. Numer telefonu może być napisany tylko w takim formacie +48 123 456 789 lub 123 456 789"
+                      );
                       return;
                     }
                     void onOneTime(normalized);
@@ -233,7 +271,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     const normalized = normalizePhoneForSending(phone);
                     if (!normalized) {
                       // eslint-disable-next-line no-alert
-                      alert("Niepoprawny numer telefonu.");
+                      alert(
+                        "Niepoprawny numer telefonu. Numer telefonu może być napisany tylko w takim formacie +48 123 456 789 lub 123 456 789"
+                      );
                       return;
                     }
                     void onSubscription(normalized);
