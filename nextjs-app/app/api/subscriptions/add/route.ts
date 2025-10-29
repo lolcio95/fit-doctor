@@ -33,12 +33,16 @@ export async function POST(req: Request) {
       }
     }
 
+    const base = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+    const successUrl = `${base}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${base}/payment/cancel?session_id={CHECKOUT_SESSION_ID}`;
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: email,
-      success_url: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
-      cancel_url: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         phone: phone ?? "",
       },
