@@ -6,6 +6,7 @@ import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import { signIn } from "next-auth/react";
 import googleLogo from "@/public/assets/google-logo.png";
 import NextImage from "next/image";
+import ResendVerificationForm from "@/app/components/molecules/ResendVerificationForm";
 
 type FormValues = {
   name: string;
@@ -36,12 +37,16 @@ export default function RegistrationPage() {
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
 
+  const [registeredEmail, setRegisteredEmail] = React.useState<string | null>(
+    null
+  );
+
   const onSubmit = async (data: FormValues) => {
     setServerError(null);
     setSuccess(null);
+    setRegisteredEmail(null);
 
     try {
-      // opcjonalnie dodatkowa walidacja po stronie klienta
       if (data.password !== data.confirmPassword) {
         setServerError("Hasła nie są takie same.");
         return;
@@ -65,6 +70,7 @@ export default function RegistrationPage() {
         return;
       }
 
+      setRegisteredEmail(data.email);
       setSuccess(
         "Rejestracja udana! Sprawdź swój e‑mail, aby potwierdzić konto."
       );
@@ -184,6 +190,12 @@ export default function RegistrationPage() {
           <div className="text-green-600 text-center mt-[-10px]">{success}</div>
         )}
       </form>
+
+      {success && registeredEmail && (
+        <div className="max-w-xs mx-auto mb-4">
+          <ResendVerificationForm defaultEmail={registeredEmail} />
+        </div>
+      )}
 
       <div className="flex justify-center flex-col max-w-xs mx-auto gap-4">
         <Button
