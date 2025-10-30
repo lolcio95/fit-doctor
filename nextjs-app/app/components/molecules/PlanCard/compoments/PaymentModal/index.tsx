@@ -144,12 +144,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     fetch("/api/user/me", { signal: abortController.signal })
       .then((res) => res.json())
       .then((data) => {
-        if (data?.user) {
-          setValue("email", data.user.email ?? "");
-          setValue(
-            "phone",
-            data.user.phone ? formatDisplayPhone(data.user.phone) : ""
-          );
+        if (data) {
+          setValue("email", data.email ?? "");
+          setValue("phone", data.phone ? formatDisplayPhone(data.phone) : "");
         }
       })
       .catch((err) => {
