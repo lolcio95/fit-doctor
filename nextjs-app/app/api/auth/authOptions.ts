@@ -38,7 +38,7 @@ export const authOptions: NextAuthOptions = {
         if (!user) return null;
 
         if (!user.emailVerified) {
-          throw new Error("Musisz najpierw potwierdzić adres e-mail.");
+          throw new Error("NOT_VERIFIED");
         }
 
         if (!user.password) return null;

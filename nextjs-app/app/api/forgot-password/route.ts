@@ -19,6 +19,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Jeśli konto istnieje, otrzymasz e‑mail z dalszymi instrukcjami.' }, { status: 200 });
     }
 
+    const hasGoogleAccount = await prisma.account.findFirst({
+      where: { userId: user.id, provider: 'google' },
+    });
+
+    if (hasGoogleAccount || !user.password) {
+      return NextResponse.json(
+        {
+          message:
+            'To konto zostało zarejestrowane przy użyciu logowania zewnętrznego (Google). ' +
+            'Aby się zalogować, użyj logowania przez Google.',
+        },
+        { status: 200 }
+      );
+    }
+
     const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1h

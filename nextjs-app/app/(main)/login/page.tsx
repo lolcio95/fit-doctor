@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import googleLogo from "@/public/assets/google-logo.png";
 import NextImage from "next/image";
+import ResendVerificationForm from "@/app/components/molecules/ResendVerificationForm";
 
 type FormValues = {
   username: string;
@@ -16,6 +17,7 @@ type FormValues = {
 export default function LoginPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [resendEmail, setResendEmail] = useState<string | null>(null);
 
   const {
     register,
@@ -35,6 +37,7 @@ export default function LoginPage() {
 
   const onSubmit = async (values: FormValues) => {
     setServerError(null);
+    setResendEmail(null);
 
     try {
       const res = await signIn("credentials", {
@@ -52,7 +55,14 @@ export default function LoginPage() {
           cleaned === "CredentialsSignin"
             ? "Nieprawidłowy login lub hasło."
             : cleaned;
-        setServerError(friendly);
+
+        if (cleaned === "NOT_VERIFIED") {
+          setServerError("NOT_VERIFIED");
+          setResendEmail(values.username);
+        } else {
+          setServerError(friendly);
+        }
+
         clearPasswordField();
         return;
       }
@@ -123,10 +133,18 @@ export default function LoginPage() {
 
         {serverError && (
           <div className="text-red-600 text-center mt-[-10px]">
-            {serverError}
+            {serverError === "NOT_VERIFIED"
+              ? "Musisz najpierw potwierdzić adres e-mail."
+              : serverError}
           </div>
         )}
       </form>
+
+      {serverError === "NOT_VERIFIED" && resendEmail && (
+        <div className="max-w-xs mx-auto">
+          <ResendVerificationForm defaultEmail={resendEmail} />
+        </div>
+      )}
 
       <div className="flex flex-col gap-4 max-w-xs mx-auto mb-10">
         <Button
