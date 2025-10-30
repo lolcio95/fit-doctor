@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendEmail } from "@/app/utils/mailer";
-import { PrismaClient } from "@prisma/client";
+import { recordPayment } from "./utils/recordPyament"; // Twój util
+import {prisma} from "@/lib/prisma"
 
-const prisma = new PrismaClient();
 
 export const config = {
   api: {
     bodyParser: false,
   },
 };
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2025-09-30.clover",
@@ -58,6 +59,7 @@ export async function POST(req: Request) {
 
   try {
     switch (event.type) {
+      // === 1️⃣ Pierwsza płatność / zakup ===
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const email = session.customer_email;
@@ -65,7 +67,6 @@ export async function POST(req: Request) {
         const currency = session.currency?.toUpperCase() ?? "PLN";
         const mode = session.mode; // "payment" | "subscription"
 
-        // Try to resolve product name from line items
         let productName = "Nieznany produkt";
         try {
           const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
@@ -75,7 +76,6 @@ export async function POST(req: Request) {
           if (item?.description) {
             productName = item.description;
           } else if (item?.price?.product) {
-            // if product expanded, try to read name
             const product = item.price.product as Stripe.Product | string | undefined;
             if (product && typeof product !== "string" && "name" in product && product.name) {
               productName = product.name;
@@ -90,61 +90,40 @@ export async function POST(req: Request) {
           ? "Dziękujemy za zakup subskrypcji 💪"
           : "Dziękujemy za zakup planu 💪";
 
-        const userHtml = isSubscription
-          ? `
-            <p>Cześć!</p>
-            <p>Dziękujemy za zakup subskrypcji <b>${productName}</b> 🎉</p>
-            <p>Twoja płatność w wysokości <b>${amount} ${currency}</b> została pomyślnie przetworzona.</p>
-            <p>Wkrótce odezwie się do Ciebie nasz trener 💪</p>
-          `
-          : `
-            <p>Cześć!</p>
-            <p>Dziękujemy za zakup planu <b>${productName}</b> 🎉</p>
-            <p>Twoja płatność w wysokości <b>${amount} ${currency}</b> została pomyślnie przetworzona.</p>
-            <p>Wkrótce odezwie się do Ciebie nasz trener 💪</p>
-          `;
+        const userHtml = `
+          <p>Cześć!</p>
+          <p>Dziękujemy za zakup ${isSubscription ? "subskrypcji" : "planu"} <b>${productName}</b> 🎉</p>
+          <p>Kwota: <b>${amount} ${currency}</b></p>
+          <p>Wkrótce się do Ciebie odezwiemy 💪</p>
+        `;
 
         const adminSubject = isSubscription
           ? "Nowa subskrypcja użytkownika"
           : "Nowa płatność jednorazowa";
 
-        // Try to fetch user from DB to get phone (or fallback to session metadata)
-        let phoneFromDb: string | null = null;
-        try {
-          if (email) {
-            const user = await prisma.user.findUnique({
-              where: { email },
-              select: { phone: true },
-            });
-            phoneFromDb = user?.phone ?? null;
-          }
-        } catch (err) {
-          console.warn("⚠️ Nie udało się pobrać użytkownika z DB:", err);
-        }
-
-        // fallback: try session metadata.phone
-        const phoneFromSessionMetadata = (session.metadata?.phone as string) ?? null;
-        const phone = phoneFromDb ?? phoneFromSessionMetadata ?? null;
-
-        const adminHtml = isSubscription
-          ? `
-            <p>Użytkownik <a href="mailto:${email}">${email}</a> zakupił subskrypcję <b>${productName}</b>.</p>
-            <p>Kwota: <b>${amount} ${currency}</b></p>
-            ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
-          `
-          : `
-            <p>Użytkownik <a href="mailto:${email}">${email}</a> zakupił plan jednorazowy <b>${productName}</b>.</p>
-            <p>Kwota: <b>${amount} ${currency}</b></p>
-            ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
-          `;
+        // Pobierz dane użytkownika
+        let phone: string | null = null;
+        let userId: string | null = null;
 
         if (email) {
-          await sendStatusEmail({
-            to: email,
-            subject: userSubject,
-            html: userHtml,
+          const user = await prisma.user.findUnique({
+            where: { email },
+            select: { id: true, phone: true },
           });
+          phone = user?.phone ?? (session.metadata?.phone as string) ?? null;
+          userId = user?.id ?? null;
+        }
 
+        const adminHtml = `
+          <p>Użytkownik <a href="mailto:${email}">${email}</a> zakupił ${
+          isSubscription ? "subskrypcję" : "plan jednorazowy"
+        } <b>${productName}</b>.</p>
+          <p>Kwota: <b>${amount} ${currency}</b></p>
+          ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
+        `;
+
+        if (email) {
+          await sendStatusEmail({ to: email, subject: userSubject, html: userHtml });
           if (adminEmails.length > 0) {
             await sendStatusEmail({
               to: adminEmails,
@@ -154,136 +133,170 @@ export async function POST(req: Request) {
           }
         }
 
-        break;
-      }
-
-      case "checkout.session.async_payment_failed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const email = session.customer_email;
-
-        if (email) {
-          await sendStatusEmail({
-            to: email,
-            subject: "Nieudana płatność",
-            html: `
-              <p>Cześć!</p>
-              <p>Twoja płatność nie została zakończona pomyślnie 😞</p>
-              <p>Jeśli chcesz spróbować ponownie, możesz przejść do strony zakupu i wykonać płatność jeszcze raz.</p>
-            `,
+        // 💾 Zapisz płatność
+        if(session.mode !== "subscription"){
+          await recordPayment({
+            email,
+            phone,
+            userId,
+            productName,
+            paymentType: isSubscription ? "subscription" : "one-time",
+            amount: session.amount_total ?? null,
+            currency,
+            source: "checkout.session.completed",
+            externalId: session.id,
+            metadata: session.metadata ?? {},
+            notes: isSubscription ? "Zakup nowej subskrypcji" : "Zakup jednorazowy",
           });
         }
+
+
         break;
       }
 
-      case "checkout.session.expired": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const email = session.customer_email;
+      // === 2️⃣ Odnowienie subskrypcji ===
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+        const subscriptionId = (invoice as any).subscription as string | null;
 
-        if (email) {
-          await sendStatusEmail({
-            to: email,
-            subject: "Sesja płatności wygasła",
-            html: `
-              <p>Cześć!</p>
-              <p>Twoja sesja płatności wygasła, zanim udało się ją ukończyć.</p>
-              <p>Jeśli nadal chcesz sfinalizować zakup, przejdź ponownie do strony płatności i spróbuj jeszcze raz.</p>
-            `,
-          });
+        // Pobierz email klienta
+        let customerEmail: string | null = null;
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          if (customer && typeof customer !== "string" && "email" in customer) {
+            customerEmail = (customer.email as string) ?? null;
+          }
+        } catch (err) {
+          console.warn("⚠️ Nie udało się pobrać klienta Stripe:", err);
         }
+
+        // Pobierz usera z DB
+        let phone: string | null = null;
+        let userId: string | null = null;
+        if (customerEmail) {
+          const user = await prisma.user.findUnique({
+            where: { email: customerEmail },
+            select: { id: true, phone: true },
+          });
+          phone = user?.phone ?? null;
+          userId = user?.id ?? null;
+        }
+
+        // Pobierz nazwę produktu
+        let productName = "Subskrypcja";
+        try {
+          if (subscriptionId) {
+            const sub = await stripe.subscriptions.retrieve(subscriptionId, {
+              expand: ["items.data.price.product"],
+            });
+            const item = sub.items.data[0];
+            const prod = item?.price?.product;
+            if (prod && typeof prod !== "string" && "name" in prod) {
+              productName = prod.name as string;
+            } else if (item?.price?.nickname) {
+              productName = item.price.nickname;
+            }
+          }
+        } catch (err) {
+          console.warn("⚠️ Nie udało się pobrać subskrypcji:", err);
+        }
+
+        const amount = invoice.amount_paid;
+        const currency = invoice.currency?.toUpperCase() ?? "PLN";
+
+        const billingReason = invoice.billing_reason ?? "manual";
+        console.log('billing reason: ', billingReason);
+
+        // 💾 Zapisz płatność
+        await recordPayment({
+          email: customerEmail,
+          phone,
+          userId,
+          productName,
+          paymentType: "subscription",
+          amount,
+          currency,
+          source: "invoice.payment_succeeded",
+          externalId: invoice.id,
+          metadata: invoice.metadata ?? {},
+          notes: "Automatyczne odnowienie subskrypcji",
+        });
+
+        // ✉️ Maile
+        const userSubject = "Twoja subskrypcja została automatycznie odnowiona 💪";
+        const userHtml = `
+          <p>Cześć!</p>
+          <p>Twoja subskrypcja <b>${productName}</b> została pomyślnie odnowiona.</p>
+          <p>Pobrano kwotę: <b>${(amount / 100).toFixed(2)} ${currency}</b>.</p>
+          <p>Dziękujemy, że nadal jesteś z nami! 💪</p>
+        `;
+
+        const adminSubject = "Odnowienie subskrypcji klienta";
+        const adminHtml = `
+          <p>Subskrypcja użytkownika <a href="mailto:${customerEmail}">${customerEmail}</a> została odnowiona.</p>
+          <p>Produkt: <b>${productName}</b></p>
+          <p>Kwota: <b>${(amount / 100).toFixed(2)} ${currency}</b></p>
+          ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
+        `;
+
+        if (customerEmail) {
+          await sendStatusEmail({ to: customerEmail, subject: userSubject, html: userHtml });
+        }
+        if (adminEmails.length > 0) {
+          await sendStatusEmail({ to: adminEmails, subject: adminSubject, html: adminHtml });
+        }
+
         break;
       }
 
-      // Handle subscription updates (e.g. plan upgrade/downgrade)
+      // === 3️⃣ Update subskrypcji (zmiana planu) ===
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-
-        // Retrieve expanded subscription to get price/product info
-        let expandedSub: Stripe.Subscription | null = null;
-        try {
-          expandedSub = await stripe.subscriptions.retrieve(subscription.id, {
-            expand: ["items.data.price.product"],
-          });
-        } catch (err) {
-          console.warn("⚠️ Nie udało się pobrać rozszerzonej subskrypcji:", err);
-        }
-
-        // Try to resolve customer email
         let customerEmail: string | null = null;
+
         try {
           if (subscription.customer) {
             const customer = await stripe.customers.retrieve(subscription.customer as string);
-            // customer can be Customer | DeletedCustomer | Stripe.Response<...>
-            // Narrow safely: check that 'email' property exists on the returned object
             if (customer && typeof customer !== "string" && "email" in customer) {
               customerEmail = (customer.email as string) ?? null;
-            } else {
-              customerEmail = null;
             }
           }
         } catch (err) {
           console.warn("⚠️ Nie udało się pobrać klienta Stripe:", err);
         }
 
-        // If we still don't have email, try to read from subscription.default_payment_method / metadata (best effort)
-        if (!customerEmail && subscription.metadata?.email) {
-          customerEmail = subscription.metadata.email;
-        }
-
-        // Determine new product/price info
-        let newPlanName = "Nowa subskrypcja";
+        let newPlanName = "Subskrypcja zaktualizowana";
         let recurringPriceStr = "";
         try {
-          const item = expandedSub?.items?.data?.[0];
+          const item = subscription.items.data[0];
           if (item?.price) {
-            const priceObj = item.price;
-            // product may be expanded
-            const product = priceObj.product;
-            if (product && typeof product !== "string" && "name" in product && product.name) {
-              newPlanName = product.name;
-            } else if (priceObj.nickname) {
-              newPlanName = priceObj.nickname;
+            const price = item.price;
+            if (typeof price.unit_amount === "number") {
+              recurringPriceStr = ` (${(price.unit_amount / 100).toFixed(2)} ${price.currency?.toUpperCase()})`;
             }
-            if (typeof priceObj.unit_amount === "number") {
-              recurringPriceStr = ` (${(priceObj.unit_amount / 100).toFixed(2)} ${priceObj.currency?.toUpperCase() ?? ""})`;
+            if (price.nickname) {
+              newPlanName = price.nickname;
             }
           }
         } catch (err) {
           console.warn("⚠️ Nie udało się odczytać informacji o cenie subskrypcji:", err);
         }
 
-        // Try to fetch user phone from DB by email
-        let phone: string | null = null;
-        if (customerEmail) {
-          try {
-            const user = await prisma.user.findUnique({
-              where: { email: customerEmail },
-              select: { phone: true },
-            });
-            phone = user?.phone ?? null;
-          } catch (err) {
-            console.warn("⚠️ Nie udało się pobrać użytkownika z DB:", err);
-          }
-        }
-
-        // Compose emails
         const userSubject = "Twoja subskrypcja została zaktualizowana";
         const userHtml = `
           <p>Cześć!</p>
-          <p>Twoja subskrypcja została zaktualizowana na: <b>${newPlanName}</b>${recurringPriceStr}.</p>
-          <p>dziękujemy — wkrótce skontaktuje się z Tobą trener.</p>
+          <p>Twoja subskrypcja została zaktualizowana na <b>${newPlanName}</b>${recurringPriceStr}.</p>
         `;
 
         const adminSubject = "Aktualizacja subskrypcji użytkownika";
         const adminHtml = `
           <p>Użytkownik <a href="mailto:${customerEmail}">${customerEmail}</a> zaktualizował subskrypcję na <b>${newPlanName}</b>${recurringPriceStr}.</p>
-          ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
         `;
 
-        // Send emails
         if (customerEmail) {
           await sendStatusEmail({ to: customerEmail, subject: userSubject, html: userHtml });
         }
-
         if (adminEmails.length > 0) {
           await sendStatusEmail({ to: adminEmails, subject: adminSubject, html: adminHtml });
         }
@@ -296,8 +309,7 @@ export async function POST(req: Request) {
     }
   } catch (err) {
     console.error("❌ Błąd podczas obsługi webhooka:", err);
-    // We'll return 500 to indicate processing error so Stripe can retry.
-    return NextResponse.json({ error: "Server error processing webhook" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

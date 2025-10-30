@@ -12,13 +12,25 @@ export async function GET(req: Request) {
   }
 
   const email = serverSession.user.email;
+
   try {
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { email: true, phone: true, name: true },
+      select: { id: true, email: true, phone: true, name: true },
     });
 
-    return NextResponse.json({ user });
+    if (!user) {
+      return NextResponse.json({ error: "Użytkownik nie znaleziony." }, { status: 404 });
+    }
+
+    const googleAccount = await prisma.account.findFirst({
+      where: { userId: user.id, provider: "google" },
+      select: { provider: true },
+    });
+
+    const hasGoogleAccount = Boolean(googleAccount);
+
+    return NextResponse.json({ hasGoogleAccount, ...user});
   } catch (err) {
     console.error("GET /api/user/me error:", err);
     return NextResponse.json({ error: "Błąd serwera." }, { status: 500 });
