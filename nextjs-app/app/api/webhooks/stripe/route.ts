@@ -61,6 +61,9 @@ export async function POST(req: Request) {
     switch (event.type) {
       // === 1️⃣ Pierwsza płatność / zakup ===
       case "checkout.session.completed": {
+        console.log('***************************')
+        console.log('CHECKOUT_SESSION_COMPLETED')
+        console.log('***************************')
         const session = event.data.object as Stripe.Checkout.Session;
         const email = session.customer_email;
         const amount = (session.amount_total ?? 0) / 100;
@@ -86,20 +89,16 @@ export async function POST(req: Request) {
         }
 
         const isSubscription = mode === "subscription";
-        const userSubject = isSubscription
-          ? "Dziękujemy za zakup subskrypcji 💪"
-          : "Dziękujemy za zakup planu 💪";
+        const userSubject = "Dziękujemy za zakup planu";
 
         const userHtml = `
           <p>Cześć!</p>
-          <p>Dziękujemy za zakup ${isSubscription ? "subskrypcji" : "planu"} <b>${productName}</b> 🎉</p>
+          <p>Dziękujemy za zakup planu <b>${productName}</b> 🎉</p>
           <p>Kwota: <b>${amount} ${currency}</b></p>
           <p>Wkrótce się do Ciebie odezwiemy 💪</p>
         `;
 
-        const adminSubject = isSubscription
-          ? "Nowa subskrypcja użytkownika"
-          : "Nowa płatność jednorazowa";
+        const adminSubject = "Nowa płatność jednorazowa";
 
         // Pobierz dane użytkownika
         let phone: string | null = null;
@@ -112,25 +111,6 @@ export async function POST(req: Request) {
           });
           phone = user?.phone ?? (session.metadata?.phone as string) ?? null;
           userId = user?.id ?? null;
-        }
-
-        const adminHtml = `
-          <p>Użytkownik <a href="mailto:${email}">${email}</a> zakupił ${
-          isSubscription ? "subskrypcję" : "plan jednorazowy"
-        } <b>${productName}</b>.</p>
-          <p>Kwota: <b>${amount} ${currency}</b></p>
-          ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
-        `;
-
-        if (email) {
-          await sendStatusEmail({ to: email, subject: userSubject, html: userHtml });
-          if (adminEmails.length > 0) {
-            await sendStatusEmail({
-              to: adminEmails,
-              subject: adminSubject,
-              html: adminHtml,
-            });
-          }
         }
 
         // 💾 Zapisz płatność
@@ -150,12 +130,33 @@ export async function POST(req: Request) {
           });
         }
 
+        const adminHtml = `
+          <p>Użytkownik <a href="mailto:${email}">${email}</a> zakupił ${
+          isSubscription ? "subskrypcję" : "plan jednorazowy"
+        } <b>${productName}</b>.</p>
+          <p>Kwota: <b>${amount} ${currency}</b></p>
+          ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
+        `;
+
+        if (email && session.mode !== "subscription") {
+          await sendStatusEmail({ to: email, subject: userSubject, html: userHtml });
+          if (adminEmails.length > 0) {
+            await sendStatusEmail({
+              to: adminEmails,
+              subject: adminSubject,
+              html: adminHtml,
+            });
+          }
+        }
 
         break;
       }
 
       // === 2️⃣ Odnowienie subskrypcji ===
       case "invoice.payment_succeeded": {
+        console.log('***************************')
+        console.log('INVOICE_PAYMENT_SUCCEEEDED')
+        console.log('***************************')
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
         const subscriptionId = (invoice as any).subscription as string | null;
@@ -206,7 +207,6 @@ export async function POST(req: Request) {
         const currency = invoice.currency?.toUpperCase() ?? "PLN";
 
         const billingReason = invoice.billing_reason ?? "manual";
-        console.log('billing reason: ', billingReason);
 
         // 💾 Zapisz płatność
         await recordPayment({
@@ -220,24 +220,25 @@ export async function POST(req: Request) {
           source: "invoice.payment_succeeded",
           externalId: invoice.id,
           metadata: invoice.metadata ?? {},
-          notes: "Automatyczne odnowienie subskrypcji",
+          notes: billingReason === 'subscription_create' ? "Zakup nowej subskrypcji" : "Automatyczne odnowienie subskrypcji",
         });
 
         // ✉️ Maile
-        const userSubject = "Twoja subskrypcja została automatycznie odnowiona 💪";
+        const userSubject = billingReason === 'subscription_create' ? "Twoja subskrypcja została pomyślnie zakupiona 🎉" : "Twoja subskrypcja została automatycznie odnowiona 🎉";
         const userHtml = `
           <p>Cześć!</p>
           <p>Twoja subskrypcja <b>${productName}</b> została pomyślnie odnowiona.</p>
           <p>Pobrano kwotę: <b>${(amount / 100).toFixed(2)} ${currency}</b>.</p>
-          <p>Dziękujemy, że nadal jesteś z nami! 💪</p>
+          <p>${billingReason === 'subscription_cycle' && 'Dziękujemy, że nadal jesteś z nami!'} Wkrótce się do Ciebie odezwiemy 💪</p>
         `;
 
-        const adminSubject = "Odnowienie subskrypcji klienta";
+        const adminSubject = billingReason === 'subscription_create' ? "Nowa subskrypcja klienta" : "Odnowienie subskrypcji klienta";
         const adminHtml = `
-          <p>Subskrypcja użytkownika <a href="mailto:${customerEmail}">${customerEmail}</a> została odnowiona.</p>
+          <p>Subskrypcja użytkownika <a href="mailto:${customerEmail}">${customerEmail}</a> ${billingReason === 'subscription_create' ? "została zakupiona" : "została odnowiona"}.</p>
           <p>Produkt: <b>${productName}</b></p>
           <p>Kwota: <b>${(amount / 100).toFixed(2)} ${currency}</b></p>
           ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
+          <p>Billing reason: ${billingReason}</p>
         `;
 
         if (customerEmail) {
@@ -294,12 +295,12 @@ export async function POST(req: Request) {
           <p>Użytkownik <a href="mailto:${customerEmail}">${customerEmail}</a> zaktualizował subskrypcję na <b>${newPlanName}</b>${recurringPriceStr}.</p>
         `;
 
-        if (customerEmail) {
-          await sendStatusEmail({ to: customerEmail, subject: userSubject, html: userHtml });
-        }
-        if (adminEmails.length > 0) {
-          await sendStatusEmail({ to: adminEmails, subject: adminSubject, html: adminHtml });
-        }
+        // if (customerEmail) {
+        //   await sendStatusEmail({ to: customerEmail, subject: userSubject, html: userHtml });
+        // }
+        // if (adminEmails.length > 0) {
+        //   await sendStatusEmail({ to: adminEmails, subject: adminSubject, html: adminHtml });
+        // }
 
         break;
       }
