@@ -2,10 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Gift, XCircle } from "lucide-react";
+import { Gift, XCircle, Phone, Settings } from "lucide-react";
 import ProfilePasswordForm from "./components/ProfilePasswordForm";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import PhoneInput, { formatDisplayPhone } from "./components/PhoneInputForm";
+import { Button } from "@/app/components/atoms/Button";
 
 type FetchedUser = {
   name?: string | null;
@@ -29,6 +32,9 @@ export default function ProfilePage() {
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   const getUserPlan = async (email: string) => {
     setLoadingPlan(true);
@@ -66,6 +72,7 @@ export default function ProfilePage() {
         const json = await res.json();
 
         setUserMeta(json || null);
+        // initialize phone display format
       } catch (err) {
         console.error("fetch /api/user/me error", err);
       } finally {
@@ -74,6 +81,49 @@ export default function ProfilePage() {
     };
     fetchUser();
   }, [sessionData?.user?.email]);
+
+  // react-hook-form to validate and manage phone
+  const { register, handleSubmit, setValue, watch, formState } = useForm<{
+    phone: string;
+  }>({
+    defaultValues: { phone: "" },
+    mode: "onSubmit",
+  });
+
+  // when userMeta loads, set phone field formatted
+  useEffect(() => {
+    if (userMeta?.phone) {
+      setValue("phone", formatDisplayPhone(userMeta.phone));
+    } else {
+      setValue("phone", "");
+    }
+  }, [userMeta?.phone, setValue]);
+
+  const phoneValue = watch("phone");
+
+  const onSavePhone = async (data: { phone: string }) => {
+    setPhoneError(null);
+    setSavingPhone(true);
+    try {
+      const res = await fetch("/api/user/change-phone-number", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: data.phone }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setPhoneError(json?.error || "Błąd podczas zapisywania numeru");
+      } else {
+        // update local state
+        setUserMeta((prev) => ({ ...(prev ?? {}), phone: json?.user?.phone }));
+      }
+    } catch (err) {
+      console.error("save phone error", err);
+      setPhoneError("Błąd podczas zapisywania numeru");
+    } finally {
+      setSavingPhone(false);
+    }
+  };
 
   return (
     <section className="min-h-screen bg-background-primary py-16 px-4 lg:px-8">
@@ -185,27 +235,112 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
-          </div>
 
-          <div className="rounded-2xl bg-background-card p-6">
-            <h4 className="text-md font-semibold text-color-primary">
-              Pomoc i ustawienia
-            </h4>
-            <div className="mt-3 flex flex-col gap-3">
-              <Link
-                href="/help"
-                className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-background-primary/10"
-              >
-                <XCircle className="w-5 h-5 text-color-primary" />
-                <span className="text-sm">Kontakt / pomoc</span>
-              </Link>
-              <Link
-                href="/user/subscription"
-                className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-background-primary/10"
-              >
-                <Gift className="w-5 h-5 text-color-primary" />
-                <span className="text-sm">Zarządzaj subskrypcją</span>
-              </Link>
+            <div className="rounded-2xl bg-background-card p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-lg bg-color-primary/10 flex items-center justify-center">
+                  <Phone className="w-6 h-6 text-color-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-color-primary">
+                    Telefon
+                  </h3>
+                  <p className="text-sm text-color-tertiary mt-1">
+                    Zmień numer swojego telefonu.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                {loadingUserMeta ? (
+                  <p className="text-sm text-color-tertiary">Ładowanie…</p>
+                ) : (
+                  <form
+                    onSubmit={handleSubmit(onSavePhone)}
+                    className="space-y-3"
+                  >
+                    <PhoneInput
+                      value={phoneValue}
+                      onChange={(v) =>
+                        setValue("phone", v, { shouldDirty: true })
+                      }
+                      register={register("phone", {
+                        required: "Numer telefonu jest wymagany",
+                        validate: (value) => {
+                          const v = (value ?? "").trim();
+                          if (!v) return "Numer telefonu jest wymagany";
+                          if (
+                            !/^(?:\+48\s?\d{3}\s?\d{3}\s?\d{3}|\d{3}\s?\d{3}\s?\d{3})$/.test(
+                              v
+                            )
+                          ) {
+                            return "Numer telefonu może być napisany tylko w takim formacie +48 123 456 789 lub 123 456 789";
+                          }
+                          return true;
+                        },
+                      })}
+                      errors={formState.errors}
+                      disabled={savingPhone}
+                    />
+
+                    {phoneError && (
+                      <div className="rounded-md bg-red-100 p-2 text-sm text-red-700">
+                        {phoneError}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button
+                        type="submit"
+                        variant="default"
+                        text={savingPhone ? "Zapisuję..." : "Zapisz numer"}
+                        disabled={savingPhone}
+                      />
+                      <Button
+                        type="button"
+                        text="Przywróć"
+                        variant="ghost"
+                        onClick={() => {
+                          setValue(
+                            "phone",
+                            userMeta?.phone
+                              ? formatDisplayPhone(userMeta.phone)
+                              : ""
+                          );
+                          setPhoneError(null);
+                        }}
+                        disabled={savingPhone}
+                      />
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-background-card p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-lg bg-color-primary/10 flex items-center justify-center">
+                  <Settings className="w-6 h-6 text-color-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-color-primary">
+                    Pomoc i ustawienia
+                  </h3>
+                  <p className="text-sm text-color-tertiary mt-1">
+                    Zmień numer swojego telefonu.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3">
+                <Link
+                  href="/help"
+                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-background-primary/10"
+                >
+                  <XCircle className="w-5 h-5 text-color-primary" />
+                  <span className="text-sm">Kontakt / pomoc</span>
+                </Link>
+              </div>
             </div>
           </div>
         </main>
