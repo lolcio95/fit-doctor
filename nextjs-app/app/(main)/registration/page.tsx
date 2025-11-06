@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
@@ -7,6 +7,8 @@ import { signIn } from "next-auth/react";
 import googleLogo from "@/public/assets/google-logo.png";
 import NextImage from "next/image";
 import ResendVerificationForm from "@/app/components/molecules/ResendVerificationForm";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type FormValues = {
   name: string;
@@ -33,6 +35,9 @@ export default function RegistrationPage() {
     setValue("confirmPassword", "");
     setFocus("password");
   };
+
+  const { status } = useSession();
+  const router = useRouter();
 
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
@@ -81,6 +86,12 @@ export default function RegistrationPage() {
       clearPasswordField();
     }
   };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
 
   return (
     <section
