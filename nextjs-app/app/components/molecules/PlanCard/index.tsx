@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import PaymentModal from "./compoments/PaymentModal";
 import ConfirmModal from "./compoments/ConfirmModal";
+import InfoModal from "./compoments/InfoModal";
 
 type PlanItem = NonNullable<Plans["plans"]>[number];
 
@@ -49,7 +50,9 @@ export const PlanCard = ({
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
-  const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const isDataLoading =
     planDataLoading || loading || sessionStatus === "loading" || modalLoading;
@@ -178,18 +181,24 @@ export const PlanCard = ({
   };
 
   const openConfirmModal = () => {
-    setConfirmError(null);
+    setPaymentError(null);
     setIsConfirmOpen(true);
   };
 
   const closeConfirmModal = () => {
     if (confirmLoading) return;
     setIsConfirmOpen(false);
-    setConfirmError(null);
+    setPaymentError(null);
+  };
+
+  const onCloseInfoModal = () => {
+    setIsInfoModalOpen(false);
+    if (!!paymentError) return;
+    window.location.reload();
   };
 
   const handleChangePlan = async () => {
-    setConfirmError(null);
+    setPaymentError(null);
     setConfirmLoading(true);
 
     try {
@@ -209,17 +218,14 @@ export const PlanCard = ({
         const msg = data?.error || "Błąd aktualizacji planu";
         throw new Error(msg);
       }
-
-      setConfirmLoading(false);
-      setIsConfirmOpen(false);
-      alert(
-        `Zmieniono plan na ${data.newPlan.name} (${data.newPlan.price} ${data.newPlan.currency})`
-      );
-      window.location.reload();
     } catch (err: any) {
       console.error("❌ Błąd zmiany planu:", err.message);
-      setConfirmError(err.message || "Błąd zmiany planu");
+      setPaymentError(err.message || "Błąd zmiany planu");
       setConfirmLoading(false);
+    } finally {
+      setConfirmLoading(false);
+      setIsConfirmOpen(false);
+      setIsInfoModalOpen(true);
     }
   };
 
@@ -314,9 +320,24 @@ export const PlanCard = ({
         isOpen={isConfirmOpen}
         onClose={closeConfirmModal}
         loading={confirmLoading}
-        error={confirmError}
+        error={paymentError}
         onConfirm={() => void handleChangePlan()}
         title={title}
+      />
+      <InfoModal
+        isOpen={isInfoModalOpen}
+        title={
+          paymentError
+            ? "Niepowodzenie płatności"
+            : "Płatność zakończona pomyslnie"
+        }
+        text={
+          paymentError
+            ? "Nie udało się zaktualizować płatności. Sprawdź swoją kartę i spróbuj ponownie później."
+            : "Plan został zaktualizowany."
+        }
+        error={!!paymentError}
+        onClose={onCloseInfoModal}
       />
     </>
   );

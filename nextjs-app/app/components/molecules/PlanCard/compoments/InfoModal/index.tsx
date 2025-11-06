@@ -4,19 +4,17 @@ import { Button } from "@/app/components/atoms/Button";
 export type ConfirmModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  loading: boolean;
-  error: string | null;
-  // akceptujemy zarówno synchroniczne jak i asynchroniczne potwierdzenia
-  onConfirm: () => void | Promise<void>;
+  error: boolean;
   title?: string;
+  text?: string;
 };
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
   isOpen,
   onClose,
-  loading,
-  onConfirm,
+  error,
   title,
+  text,
 }) => {
   if (!isOpen) return null;
 
@@ -28,28 +26,25 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     >
       <div className="w-full max-w-sm rounded-lg bg-background-card p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-bold">Potwierdź aktualizację</h4>
+          <h4 className="text-lg font-bold">{title}</h4>
         </div>
 
-        <p className="text-sm text-color-primary mb-4">
-          Czy na pewno chcesz zaktualizować swój plan na &quot;{title}&quot;?
-        </p>
+        {error ? (
+          <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
+            {text}
+          </div>
+        ) : (
+          <div className="mb-4 rounded-md bg-green-100 p-3 text-sm text-green-600">
+            {text}
+          </div>
+        )}
 
         <div className="flex gap-3 justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded bg-transparent text-color-tertiary underline"
-            disabled={loading}
-          >
-            Anuluj
-          </button>
           <Button
-            // użycie void aby nie zostawiać nieobsłużonego Promise'a
-            text={loading ? "Aktualizuję..." : "OK"}
+            text={"OK"}
             className="px-4 py-2"
             variant="default"
-            onClick={() => void onConfirm()}
-            disabled={loading}
+            onClick={() => void onClose()}
           />
         </div>
       </div>

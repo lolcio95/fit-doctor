@@ -59,7 +59,6 @@ export async function POST(req: Request) {
 
   try {
     switch (event.type) {
-      // === 1️⃣ Pierwsza płatność / zakup ===
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const email = session.customer_email;
@@ -164,33 +163,17 @@ export async function POST(req: Request) {
         break;
       }
 
-
-
-      // === 2️⃣ Odnowienie subskrypcji ===
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
         const billingReason = invoice.billing_reason;
         let productName = "Subskrypcja"; 
-        let oldProductName = "Subskrypcja";
-        let newProductName = "Subskrypcja";
 
         try {
-          if(billingReason === 'subscription_create' || billingReason === 'subscription_cycle') {
             const subscription = await stripe.subscriptions.retrieve(invoice.parent?.subscription_details?.subscription as string ?? '');
             const price = await stripe.prices.retrieve(subscription.items.data[0].plan.id ?? '');
             const product = await stripe.products.retrieve(price.product as string);
             productName = product.name;
-          }
-          if(billingReason === 'manual' && invoice.metadata?.action === 'UPDATE_SUBSCRIPTION'){
-              const oldPrice = await stripe.prices.retrieve(invoice.metadata.oldPrice);
-              const oldProduct = await stripe.products.retrieve(oldPrice.product as string);
-              oldProductName = oldProduct.name
-
-              const newPrice = await stripe.prices.retrieve(invoice.metadata.newPrice);
-              const newProduct = await stripe.products.retrieve(newPrice.product as string);
-              newProductName = newProduct.name
-          }
           
         } catch (error) {
           console.log('invoic details error: ', error);
@@ -205,8 +188,6 @@ export async function POST(req: Request) {
         } catch (err) {
           console.warn("⚠️ Nie udało się pobrać klienta Stripe:", err);
         }
-
-        console.log('PRODUCT NAME: ', productName);
 
 
 
@@ -228,15 +209,11 @@ export async function POST(req: Request) {
         const amount = invoice.amount_paid;
         const currency = invoice.currency?.toUpperCase() ?? "PLN";
 
-        // ✉️ Maile
-        // const userSubject = billingReason === 'subscription_create' ? "Twoja subskrypcja została pomyślnie zakupiona 🎉" : "Twoja subskrypcja została automatycznie odnowiona 🎉";
         let userSubject = "Nowa płatność";
         let adminSubject = "Nowa Płatność";
         let userHtml = "";
         let adminHtml = "";
         let notes = ""
-
-        console.log('BILLING reason', billingReason);
 
         switch(billingReason){
           case 'subscription_create': {
@@ -275,33 +252,47 @@ export async function POST(req: Request) {
             notes = "Automatyczne odnowienie subskrypcji";
             break;
           }
-          case 'manual': {
-            if(invoice.metadata?.action === 'UPDATE_SUBSCRIPTION') {
-              userSubject = "Twoja subskrypcja została zaktualizowana 🎉";
-              adminSubject = "Aktulizacja subskrypcji użytkownika";
-              userHtml = `
-                <p>Cześć!</p>
-                <p>Twoja subskrypcja z <b>${oldProductName}</b> na <b>${newProductName}</b> została pomyslnie zaktualizowana.</p>
-                <p>Pobrano kwotę: <b>${(amount / 100).toFixed(2)} ${currency}</b>.</p>
-                <p>Wkrótce się do Ciebie odezwiemy 💪</p>
-              `;
-              adminHtml = `
-                <p>Subskrypcja użytkownika <a href="mailto:${customerEmail}">${customerEmail}</a> została zaktualizowana z <b>${oldProductName}</b> na <b>${newProductName}</b></p>
-                <p>Kwota: <b>${(amount / 100).toFixed(2)} ${currency}</b></p>
-                ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
-              `;
-              notes = `Aktualizacja subskrypcji z ${oldProductName} na ${newProductName}`;
-              break;
-            }
+          case 'subscription_update': {
+            userSubject = "Twoja subskrypcja została zaktualizowana 🎉";
+            adminSubject = "Aktulizacja subskrypcji użytkownika";
+            userHtml = `
+              <p>Cześć!</p>
+              <p>Twoja subskrypcja dla <b>${productName}</b> została pomyslnie zaktualizowana.</p>
+              <p>Pobrano kwotę: <b>${(amount / 100).toFixed(2)} ${currency}</b>.</p>
+              <p>Wkrótce się do Ciebie odezwiemy 💪</p>
+            `;
+            adminHtml = `
+              <p>Subskrypcja użytkownika <a href="mailto:${customerEmail}">${customerEmail}</a> została zaktualizowana na <b>${productName}</b></p>
+              <p>Kwota: <b>${(amount / 100).toFixed(2)} ${currency}</b></p>
+              ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
+            `;
+            notes = `Aktualizacja subskrypcji na ${productName}`;
+            break;
+          }
+          default: {
+            userSubject = "Nowa płatność";
+            adminSubject = "Nowa płatność";
+            userHtml = `
+              <p>Cześć!</p>
+              <p>Nowa płatność na Twoim koncie</p>
+              <p>Pobrano kwotę: <b>${(amount / 100).toFixed(2)} ${currency}</b>.</p>
+              <p>Wkrótce się do Ciebie odezwiemy 💪</p>
+            `;
+            adminHtml = `
+              <p>Subskrypcja użytkownika <a href="mailto:${customerEmail}">${customerEmail}</a> za <b>${productName}</b></p>
+              <p>Kwota: <b>${(amount / 100).toFixed(2)} ${currency}</b></p>
+              ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
+            `;
+            notes = `Nowa płatność`;
+            break;
           }
         }
 
-        // 💾 Zapisz płatność
         await recordPayment({
           email: customerEmail,
           phone,
           userId,
-          productName: billingReason === 'manual' && invoice.metadata?.action === 'UPDATE_SUBSCRIPTION' ? `Update subskrypcji z ${oldProductName} na ${newProductName}` : productName,
+          productName: billingReason === 'subscription_update' ? `Update subskrypcji na ${productName}` : productName,
           paymentType: "subscription",
           amount,
           currency,
@@ -326,136 +317,83 @@ export async function POST(req: Request) {
         const customerId = invoice.customer as string;
         const billingReason = invoice.billing_reason;
         let productName = "Subskrypcja"; 
-        let oldProductName = "Subskrypcja";
-        let newProductName = "Subskrypcja";
 
-        // try {
-        //   if(billingReason === 'subscription_create' || billingReason === 'subscription_cycle') {
-        //     const subscription = await stripe.subscriptions.retrieve(invoice.parent?.subscription_details?.subscription as string ?? '');
-        //     const price = await stripe.prices.retrieve(subscription.items.data[0].plan.id ?? '');
-        //     const product = await stripe.products.retrieve(price.product as string);
-        //     productName = product.name;
-        //   }
-        //   if(billingReason === 'manual' && invoice.metadata?.action === 'UPDATE_SUBSCRIPTION'){
-        //       const oldPrice = await stripe.prices.retrieve(invoice.metadata.oldPrice);
-        //       const oldProduct = await stripe.products.retrieve(oldPrice.product as string);
-        //       oldProductName = oldProduct.name
+        try {
+          const subscription = await stripe.subscriptions.retrieve(invoice.parent?.subscription_details?.subscription as string ?? '');
+          const price = await stripe.prices.retrieve(subscription.items.data[0].plan.id ?? '');
+          const product = await stripe.products.retrieve(price.product as string);
+          productName = product.name;        
+        } catch (error) {
+          console.log('invoic details error: ', error);
+        }
 
-        //       const newPrice = await stripe.prices.retrieve(invoice.metadata.newPrice);
-        //       const newProduct = await stripe.products.retrieve(newPrice.product as string);
-        //       newProductName = newProduct.name
-        //   }
-          
-        // } catch (error) {
-        //   console.log('invoic details error: ', error);
-        // }
+        let customerEmail: string | null = null;
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          if (customer && typeof customer !== "string" && "email" in customer) {
+            customerEmail = (customer.email as string) ?? null;
+          }
+        } catch (err) {
+          console.warn("⚠️ Nie udało się pobrać klienta Stripe:", err);
+        }
 
-        // let customerEmail: string | null = null;
-        // try {
-        //   const customer = await stripe.customers.retrieve(customerId);
-        //   if (customer && typeof customer !== "string" && "email" in customer) {
-        //     customerEmail = (customer.email as string) ?? null;
-        //   }
-        // } catch (err) {
-        //   console.warn("⚠️ Nie udało się pobrać klienta Stripe:", err);
-        // }
-
-        // console.log('PRODUCT NAME: ', productName);
-
-
-
-
-        // Pobierz usera z DB
         let phone: string | null = null;
         let userId: string | null = null;
-        // if (customerEmail) {
-        //   const user = await prisma.user.findUnique({
-        //     where: { email: customerEmail },
-        //     select: { id: true, phone: true },
-        //   });
-        //   phone = user?.phone ?? null;
-        //   userId = user?.id ?? null;
-        // }
-
-
-
-        const amount = invoice.amount_paid;
-        const currency = invoice.currency?.toUpperCase() ?? "PLN";
+        if (customerEmail) {
+          const user = await prisma.user.findUnique({
+            where: { email: customerEmail },
+            select: { id: true, phone: true },
+          });
+          phone = user?.phone ?? null;
+          userId = user?.id ?? null;
+        }
 
         // ✉️ Maile
-        // const userSubject = billingReason === 'subscription_create' ? "Twoja subskrypcja została pomyślnie zakupiona 🎉" : "Twoja subskrypcja została automatycznie odnowiona 🎉";
         let userSubject = "Niepowodzenie płatności";
-        let adminSubject = "Nowa Płatność";
         let userHtml = "";
-        let adminHtml = "";
-        let notes = ""
-        console.log('**************')
-        console.log('niepowodzenie płatności');
-        console.log('BILLING reason ', billingReason);
-        console.log('invoice metadata: ', invoice.metadata);
-        console.log('*******************')
 
-        // switch(billingReason){
-        //   case 'subscription_create': {
-        //     userSubject = "Twoja subskrypcja została pomyślnie zakupiona 🎉";
-        //     adminSubject = "Nowa subskrypcja użytkownika";
-        //     userHtml = `
-        //       <p>Cześć!</p>
-        //       <p>Twoja subskrypcja dla <b>${productName}</b> została utworzona.</p>
-        //       <p>Pobrano kwotę: <b>${(amount / 100).toFixed(2)} ${currency}</b>.</p>
-        //       <p>Wkrótce się do Ciebie odezwiemy 💪</p>
-        //     `;
-        //     adminHtml = `
-        //       <p>Subskrypcja użytkownika <a href="mailto:${customerEmail}">${customerEmail}</a> została utworzona</p>
-        //       <p>Produkt: <b>${productName}</b></p>
-        //       <p>Kwota: <b>${(amount / 100).toFixed(2)} ${currency}</b></p>
-        //       ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
-        //     `;
-        //     notes = "Zakup nowej subskrypcji";
-        //     break;
-        //   }
-        //   case 'subscription_cycle': {
-        //     userSubject = "Twoja subskrypcja została odnowiona 🎉";
-        //     adminSubject = "Odnowienie subskrypcji użytkownika";
-        //     userHtml = `
-        //       <p>Cześć!</p>
-        //       <p>Twoja subskrypcja dla <b>${productName}</b> została odnowiona.</p>
-        //       <p>Pobrano kwotę: <b>${(amount / 100).toFixed(2)} ${currency}</b>.</p>
-        //       <p>Wkrótce się do Ciebie odezwiemy 💪</p>
-        //     `;
-        //     adminHtml = `
-        //       <p>Subskrypcja użytkownika <a href="mailto:${customerEmail}">${customerEmail}</a> została odnowiona</p>
-        //       <p>Produkt: <b>${productName}</b></p>
-        //       <p>Kwota: <b>${(amount / 100).toFixed(2)} ${currency}</b></p>
-        //       ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
-        //     `;
-        //     notes = "Automatyczne odnowienie subskrypcji";
-        //     break;
-        //   }
-        //   case 'manual': {
-        //     if(invoice.metadata?.action === 'UPDATE_SUBSCRIPTION') {
-        //       userSubject = "Twoja subskrypcja została zaktualizowana 🎉";
-        //       adminSubject = "Aktulizacja subskrypcji użytkownika";
-        //       userHtml = `
-        //         <p>Cześć!</p>
-        //         <p>Twoja subskrypcja z <b>${oldProductName}</b> na <b>${newProductName}</b> została pomyslnie zaktualizowana.</p>
-        //         <p>Pobrano kwotę: <b>${(amount / 100).toFixed(2)} ${currency}</b>.</p>
-        //         <p>Wkrótce się do Ciebie odezwiemy 💪</p>
-        //       `;
-        //       adminHtml = `
-        //         <p>Subskrypcja użytkownika <a href="mailto:${customerEmail}">${customerEmail}</a> została zaktualizowana z <b>${oldProductName}</b> na <b>${newProductName}</b></p>
-        //         <p>Kwota: <b>${(amount / 100).toFixed(2)} ${currency}</b></p>
-        //         ${phone ? `<p>Telefon: <b><a href="tel:${phone}">${phone}</a></b></p>` : ""}
-        //       `;
-        //       notes = `Aktualizacja subskrypcji z ${oldProductName} na ${newProductName}`;
-        //       break;
-        //     }
-        //   }
-        // }
+        switch(billingReason){
+          case 'subscription_create': {
+            userSubject = "Nie udało się zakupić subskrypcji";
+            userHtml = `
+              <p>Cześć!</p>
+              <p>Zakup subskrypcji dla <b>${productName}</b> zakończył się niepowodzeniem.</p>
+              <p>Spróbuj ponownie później.</p>
+            `;
+            break;
+          }
+          case 'subscription_cycle': {
+            userSubject = "Nie udało się onowić subskrypcji";
+            userHtml = `
+              <p>Cześć!</p>
+              <p>Twoja płatność za <b>${productName}</b> nie powiodła się.</p>
+              <p>Spróbuj ponownie później.</p>
+            `;
+            break;
+          }
+          case 'subscription_update': {
+            userSubject = "Nie udało się zaktualizować subskrypcji";
+            userHtml = `
+              <p>Cześć!</p>
+              <p>Twoja aktualizacja subskrypcji dla <b>${productName}</b> nie powiodła się.</p>
+              <p>Spróbuj ponownie później.</p>
+            `;
+            break;
+          }
+          default: {
+            userSubject = "Niepowodzenie płatności";
+            userHtml = `
+              <p>Cześć!</p>
+              <p>Twoja płatność nie powiodła się.</p>
+              <p>Spróbuj ponownie później.</p>
+            `;
+            break;
+          }
+        }
 
-        // if (customerEmail) {
-        //   await sendStatusEmail({ to: customerEmail, subject: userSubject, html: userHtml });
-        // }
+        if (customerEmail) {
+          await sendStatusEmail({ to: customerEmail, subject: userSubject, html: userHtml });
+        }
 
         break;
       }
