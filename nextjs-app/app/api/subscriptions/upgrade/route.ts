@@ -23,7 +23,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🧾 Aktualizacja planu użytkownika
     const updated = await stripe.subscriptions.update(subscriptionId, {
       items: [
         {
@@ -31,10 +30,11 @@ export async function POST(req: Request) {
           price: newPriceId,
         },
       ],
-      proration_behavior: "create_prorations", // 💡 naliczy proporcjonalną różnicę między planami
+      proration_behavior: "create_prorations",
+      billing_cycle_anchor: "now",
+      payment_behavior: 'error_if_incomplete',
     });
 
-    // 💡 Możesz opcjonalnie rozwinąć cenę, żeby od razu znać nazwę nowego planu
     const updatedWithPrice = await stripe.subscriptions.retrieve(updated.id, {
       expand: ["items.data.price.product"],
     });

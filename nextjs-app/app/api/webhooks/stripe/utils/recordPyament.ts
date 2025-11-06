@@ -25,13 +25,6 @@ export const recordPayment = async ({
   metadata?: Record<string, any> | null;
   notes?: string | null;
 }) => {
-    console.log("📘 Próba zapisania płatności:", {
-    email,
-    productName,
-    amount,
-    currency,
-    externalId,
-  });
   try {
     let dbUser = null;
     if (email) {
