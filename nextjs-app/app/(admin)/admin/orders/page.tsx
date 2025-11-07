@@ -2,10 +2,10 @@
 
 import React from "react";
 
-export default function AdminPage() {
+export default function OrdersPage() {
   return (
     <section className="bg-background-primary py-16 px-4 lg:px-8">
-      <p>Admin page</p>
+      <p>Orders page</p>
     </section>
   );
 }
