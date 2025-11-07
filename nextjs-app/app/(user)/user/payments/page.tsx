@@ -213,7 +213,7 @@ export default function PaymentsPage() {
                   <p className="text-sm text-color-tertiary mb-3">
                     Brak aktywnej subskrypcji.
                   </p>
-                  <Button onClick={() => (window.location.href = "/pricing")}>
+                  <Button onClick={() => (window.location.href = "/plans")}>
                     Wybierz plan
                   </Button>
                 </div>

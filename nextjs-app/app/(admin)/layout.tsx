@@ -1,10 +1,5 @@
 "use client";
 
-import Sidebar from "./components/Sidebar";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
 export default function UserLayout({
   children,
 }: {
@@ -12,7 +7,6 @@ export default function UserLayout({
 }) {
   return (
     <body style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar />
       <main className="lg:mt-0" style={{ flex: 1, padding: "2rem" }}>
         {children}
       </main>
