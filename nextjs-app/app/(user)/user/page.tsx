@@ -7,7 +7,6 @@ import { List, Clipboard, TrendingUp, Gift, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import imagePlaceholder from "@/public/assets/user-img-placeholder.jpg";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 
 export default function DashboardPage() {
@@ -64,8 +63,7 @@ export default function DashboardPage() {
   };
 
   const logout = () => {
-    signOut();
-    redirect("/");
+    signOut({ callbackUrl: "/login" });
   };
 
   useEffect(() => {
