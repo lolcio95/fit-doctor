@@ -7,7 +7,6 @@ import { List, Clipboard, TrendingUp, Gift, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import imagePlaceholder from "@/public/assets/user-img-placeholder.jpg";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 
 export default function DashboardPage() {
@@ -64,8 +63,7 @@ export default function DashboardPage() {
   };
 
   const logout = () => {
-    signOut();
-    redirect("/");
+    signOut({ callbackUrl: "/login" });
   };
 
   useEffect(() => {
@@ -77,7 +75,7 @@ export default function DashboardPage() {
   const avatarSrc = sessionData?.user?.image ?? undefined;
 
   return (
-    <section className="min-h-screen bg-background-primary py-16 px-4 lg:px-8">
+    <section className="bg-background-primary py-16 px-4 lg:px-8">
       <div className="max-w-5xl mx-auto grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Sidebar */}
         <aside className="col-span-1 bg-background-card rounded-2xl p-6 flex flex-col items-center gap-4">

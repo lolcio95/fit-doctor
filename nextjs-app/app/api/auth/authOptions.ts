@@ -13,8 +13,8 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
-      clientId: process.env.NEXT_PUBLIC_AUTH_GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.NEXT_PUBLIC_GOOGLE_AUTH_SECRET ?? "",
+      clientId: process.env.GOOGLE_AUTH_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_AUTH_CLIENT_SECRET ?? "",
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -50,11 +50,13 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           name: user.name ?? undefined,
           email: user.email ?? undefined,
+          role: user.role ?? "USER",
+          passwordChangedAt: user.passwordChangedAt ?? null,
         } as any;
       },
     }),
   ],
-  secret: process.env.NEXT_PUBLIC_AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "",
+  secret: process.env.NEXTAUTH_SECRET ?? "",
   session: {
     strategy: "jwt" as SessionStrategy,
   },

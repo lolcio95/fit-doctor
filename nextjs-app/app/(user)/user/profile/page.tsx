@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import PhoneInput, { formatDisplayPhone } from "./components/PhoneInputForm";
 import { Button } from "@/app/components/atoms/Button";
+import { NotificationsToggler } from "./components/NotificationsToggler";
 
 type FetchedUser = {
   name?: string | null;
@@ -31,10 +32,15 @@ export default function ProfilePage() {
   const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
 
   const [savingPhone, setSavingPhone] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState<
+    boolean | null
+  >(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const getUserPlan = async (email: string) => {
     setLoadingPlan(true);
@@ -81,6 +87,26 @@ export default function ProfilePage() {
     };
     fetchUser();
   }, [sessionData?.user?.email]);
+
+  const fetchSettings = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/user/settings");
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      const json = await res.json();
+      setNotificationsEnabled(Boolean(json.notificationsEnabled));
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message ?? "Błąd pobierania ustawień");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
   // react-hook-form to validate and manage phone
   const { register, handleSubmit, setValue, watch, formState } = useForm<{
@@ -137,7 +163,10 @@ export default function ProfilePage() {
               Zarządzaj informacjami o koncie, subskrypcji i bezpieczeństwie.
             </p>
           </div>
-
+          <NotificationsToggler
+            notificationsEnabled={notificationsEnabled}
+            setNotificationsEnabled={setNotificationsEnabled}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
             <div className="rounded-2xl bg-background-card p-6 shadow-sm">
               <div className="flex items-start gap-4">
@@ -324,17 +353,14 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-color-primary">
-                    Pomoc i ustawienia
+                    Pomoc
                   </h3>
-                  <p className="text-sm text-color-tertiary mt-1">
-                    Zmień numer swojego telefonu.
-                  </p>
                 </div>
               </div>
 
               <div className="mt-4 flex flex-col gap-3">
                 <Link
-                  href="/help"
+                  href="/contact"
                   className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-background-primary/10"
                 >
                   <XCircle className="w-5 h-5 text-color-primary" />

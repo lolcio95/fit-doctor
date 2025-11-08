@@ -9,33 +9,18 @@ import { HamburgerButton } from "@/app/components/atoms/HamburgerButton";
 import { signOut } from "next-auth/react";
 
 const navItems = [
-  { href: "/user", label: "Panel użytkownika" },
-  {
-    label: "Siłownia",
-    key: "gym",
-    href: "/user/gym",
-    children: [
-      { href: "/user/gym/trainings", label: "Treningi" },
-      { href: "/user/gym/exercises", label: "Ćwiczenia" },
-      { href: "/user/gym/progress", label: "Progres" },
-    ],
-  },
-  { href: "/user/profile", label: "Ustawienia" },
+  { href: "/admin", label: "Panel Administratora" },
+  { href: "/admin/orders", key: "orders", label: "Zamówienia" },
+  { href: "/admin/settings", label: "Ustawienia" },
 ];
 
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  // nowy ref - obejmuje DOM element zawierający HamburgerButton
   const toggleRef = useRef<HTMLDivElement | null>(null);
 
   const pathname = usePathname() || "/";
-
-  const handleLogout = async () => {
-    handleNavClickOnMobile();
-    signOut({ callbackUrl: "/login" });
-  };
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -50,21 +35,22 @@ export default function Sidebar() {
     };
   }, [mobileOpen]);
 
-  // close when clicking outside panel (mobile)
+  const handleLogout = async () => {
+    handleNavClickOnMobile();
+    signOut({ callbackUrl: "/login" });
+  };
+
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (!mobileOpen) return;
 
-      // jeśli kliknięto w panel => nic
       if (panelRef.current && panelRef.current.contains(e.target as Node)) {
         return;
       }
-      // jeśli kliknięto w toggle (hamburger) => nic, bo on sam przełącza stan
       if (toggleRef.current && toggleRef.current.contains(e.target as Node)) {
         return;
       }
 
-      // w przeciwnym razie zamykamy panel
       setMobileOpen(false);
     };
     document.addEventListener("mousedown", onClick);
@@ -75,7 +61,6 @@ export default function Sidebar() {
     if (mobileOpen) setMobileOpen(false);
   };
 
-  // helper: prefix-check for parent items (should highlight parent when on its children)
   const isPrefixActive = (href?: string) => {
     if (!href) return false;
     return pathname === href || pathname.startsWith(href + "/");
@@ -89,7 +74,7 @@ export default function Sidebar() {
             <li key={item.key} className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <Link
-                  href={item.href ?? "/user/gym"}
+                  href={item.href}
                   onClick={handleNavClickOnMobile}
                   className={`block text-left w-full px-2 py-1 rounded-md ${
                     isPrefixActive(item.href)
@@ -101,32 +86,6 @@ export default function Sidebar() {
                   {item.label}
                 </Link>
               </div>
-
-              {/* children always expanded; grid on larger screens */}
-              <ul
-                className="flex flex-col gap-2 pl-3 m-0"
-                style={{ listStyle: "none" }}
-              >
-                {item.children?.map((child) => {
-                  const active = isPrefixActive(child.href);
-                  return (
-                    <li key={child.href}>
-                      <Link
-                        href={child.href}
-                        onClick={handleNavClickOnMobile}
-                        className={`block w-full rounded-md px-3 py-2 text-sm transition ${
-                          active
-                            ? "bg-color-primary text-background-primary shadow-sm"
-                            : "text-color-tertiary hover:bg-background-primary"
-                        }`}
-                        style={{ textDecoration: "none" }}
-                      >
-                        {child.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
             </li>
           );
         }
@@ -149,7 +108,6 @@ export default function Sidebar() {
           </li>
         );
       })}
-
       <li className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <button
@@ -166,15 +124,12 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* mobile hamburger (visible < lg) */}
-      {/* owijamy HamburgerButton w div z refem toggleRef */}
       <div ref={toggleRef} className="lg:hidden fixed top-4 right-4 z-50">
         <HamburgerButton isOpen={mobileOpen} setIsOpen={setMobileOpen} />
       </div>
 
       <div className="lg:hidden h-12" aria-hidden />
 
-      {/* mobile slide-over panel */}
       <div
         aria-hidden={!mobileOpen}
         className={`lg:hidden fixed inset-0 z-40 transition-opacity duration-200 ${
@@ -209,7 +164,6 @@ export default function Sidebar() {
         </aside>
       </div>
 
-      {/* desktop sidebar */}
       <nav
         className="hidden lg:block bg-background-card"
         style={{

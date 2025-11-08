@@ -101,6 +101,7 @@ export default function EditTrainingPage() {
       status: "DONE",
       exercises: [],
     },
+    mode: "onSubmit",
   });
 
   useEffect(() => {
@@ -420,7 +421,7 @@ export default function EditTrainingPage() {
 
   return (
     <section className="min-h-screen bg-background-primary py-12 lg:px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto">
         <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-1.5 h-10 rounded-full bg-gradient-to-b from-color-primary/80 to-color-primary/40" />
@@ -429,7 +430,9 @@ export default function EditTrainingPage() {
                 Edytuj trening
               </h1>
               <p className="text-sm text-color-tertiary mt-1">
-                Edycja sesji — zmiany są autosave przy statusie{" "}
+                {watchedStatus === "IN_PROGRESS"
+                  ? "Edycja sesji — zmiany są automatycznie zapisywane przy statusie"
+                  : "Edycja sesji — zmiany nie są automatycznie zapisywane przy statusie"}{" "}
                 <span className="font-semibold px-2 py-0.5 rounded-md bg-yellow-100 text-yellow-800">
                   {watchedStatus === "IN_PROGRESS" ? "W TRAKCIE" : "ZAKOŃCZONY"}
                 </span>
@@ -481,11 +484,6 @@ export default function EditTrainingPage() {
                 required
                 className="w-full px-3 py-2 rounded-lg border bg-transparent focus:outline-none focus:ring-2 focus:ring-color-primary"
               />
-              {errors.date && (
-                <div className="text-sm text-red-600 mt-1">
-                  {(errors.date as any).message}
-                </div>
-              )}
             </label>
 
             <div className="flex flex-col items-start sm:items-end">
@@ -522,6 +520,9 @@ export default function EditTrainingPage() {
                   Przejdź do ćwiczeń aby dodać ćwiczenia do swojej bazy
                 </p>
                 <ButtonLink text="Dodaj ćwiczenia" href="/user/gym/exercises" />
+                <div className="text-sm text-red-600 mt-3">
+                  {errors?.exercises && (errors.exercises as any).message}
+                </div>
               </div>
             )}
           </div>
@@ -531,23 +532,29 @@ export default function EditTrainingPage() {
           <div className="mt-6 flex flex-col sm:flex-row sm:justify-end gap-3">
             {watchedStatus === "IN_PROGRESS" ? (
               <>
-                <button
-                  type="button"
-                  onClick={handleFinish}
-                  disabled={autosaving || saving}
-                  className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-color-primary to-color-primary/80 text-background-primary shadow-md disabled:opacity-60"
-                >
-                  <CheckSquare className="w-4 h-4" />
-                  {saving ? "Zapisuję i kończę..." : "Zakończ trening"}
-                </button>
+                <div className="flex flex-col lg:flex-row gap-4">
+                  <button
+                    type="button"
+                    onClick={handleFinish}
+                    disabled={autosaving || saving}
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-color-primary to-color-primary/80 text-background-primary shadow-md disabled:opacity-60"
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    {autosaving
+                      ? "Automatyczne zapisywanie..."
+                      : saving
+                        ? "Zapisuję i kończę..."
+                        : "Zakończ trening"}
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => router.push("/user/gym/trainings")}
-                  className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-transparent hover:bg-background-primary/30"
-                >
-                  Anuluj
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/user/gym/trainings")}
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-transparent hover:bg-background-primary/30 justify-center"
+                  >
+                    Anuluj
+                  </button>
+                </div>
               </>
             ) : (
               <>

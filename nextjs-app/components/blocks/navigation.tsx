@@ -120,6 +120,16 @@ export function Navigation({ logo, menuItems }: NavigationProps) {
 
                       <div className="border-t border-background-primary/20">
                         <div className="flex flex-col p-2 gap-2">
+                          {session.user.role === "ADMIN" && (
+                            <Link
+                              className="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-color-tertiary hover:text-background-secondary hover:bg-color-tertiary transition"
+                              href="/admin"
+                              onClick={() => setIsUserDropdownOpen(false)}
+                            >
+                              Panel administratora
+                            </Link>
+                          )}
+
                           <Link
                             className="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-color-tertiary hover:text-background-secondary hover:bg-color-tertiary transition"
                             href="/user"
@@ -200,6 +210,17 @@ export function Navigation({ logo, menuItems }: NavigationProps) {
                       priority
                     />
                     <p className="font-bold">{session.user.name}</p>
+                    {session.user.role === "ADMIN" && (
+                      <ButtonLink
+                        variant="default"
+                        className="w-full max-w-[12.5rem]"
+                        text="Panel administratora"
+                        href={"/admin"}
+                        onClick={() => {
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
                     <ButtonLink
                       variant="default"
                       className="w-full max-w-[12.5rem]"

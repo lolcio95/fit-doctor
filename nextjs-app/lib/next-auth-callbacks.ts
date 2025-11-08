@@ -3,13 +3,14 @@ import type { JWT } from "next-auth/jwt";
 
 export interface TokenWithExtras extends JWT {
   userId?: string;
+  role?: "USER" | "ADMIN";
   passwordChangedAt?: number | null;
   invalid?: boolean;
 }
 
 export type SessionWithExtras = Session & {
   error?: string;
-  user?: Session["user"] & { id?: string };
+  user?: Session["user"] & { id?: string; role?: "USER" | "ADMIN" };
 };
 
 export const callbacks: NextAuthOptions["callbacks"] = {
@@ -20,6 +21,12 @@ export const callbacks: NextAuthOptions["callbacks"] = {
       const anyUser = user as any;
       if (anyUser.id) {
         t.userId = String(anyUser.id);
+      }
+
+      if (anyUser.role) {
+        t.role = anyUser.role as "USER" | "ADMIN";
+      } else {
+        t.role = "USER";
       }
 
       if (anyUser.passwordChangedAt) {
@@ -43,6 +50,12 @@ export const callbacks: NextAuthOptions["callbacks"] = {
     if (!s.user) s.user = {};
     if (t.userId) {
       s.user.id = t.userId;
+    }
+
+    if (t.role) {
+      s.user.role = t.role;
+    } else {
+      s.user.role = "USER";
     }
 
     if (t.invalid) {

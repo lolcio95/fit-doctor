@@ -1,6 +1,6 @@
 "use client";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import googleLogo from "@/public/assets/google-logo.png";
 import NextImage from "next/image";
 import ResendVerificationForm from "@/app/components/molecules/ResendVerificationForm";
+import { useSession } from "next-auth/react";
 
 type FormValues = {
   username: string;
@@ -16,6 +17,7 @@ type FormValues = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [serverError, setServerError] = useState<string | null>(null);
   const [resendEmail, setResendEmail] = useState<string | null>(null);
 
@@ -75,6 +77,12 @@ export default function LoginPage() {
       setServerError("Wystąpił błąd podczas logowania. Spróbuj ponownie.");
     }
   };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
 
   return (
     <section
