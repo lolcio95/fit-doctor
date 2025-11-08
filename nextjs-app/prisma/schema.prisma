@@ -23,6 +23,12 @@ enum TrainingStatus {
   DONE
 }
 
+enum OrderStatus {
+  TO_PROCESS
+  PROCESSING
+  PROCESSED
+}
+
 model User {
   id                String      @id @default(auto()) @map("_id") @db.ObjectId
   name              String?     @unique
@@ -137,6 +143,7 @@ model Payment {
   processedAt DateTime?
   metadata    Json?
   notes       String?
+  orderStatus OrderStatus @default(TO_PROCESS)
 
   @@index([userId])
   @@index([email])
