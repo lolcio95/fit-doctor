@@ -45,6 +45,8 @@ model User {
   passwordResetTokens PasswordResetToken[]
   payments          Payment[]
   role              Role        @default(USER)
+  // settings          Json?       // dowolne rozszerzalne ustawienia w przyszłości
+  notificationsEnabled Boolean   @default(true)
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 }

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendEmail } from "@/app/utils/mailer";
 import { recordPayment } from "./utils/recordPyament";
 import {prisma} from "@/lib/prisma"
+import { sendStatusEmail } from "@/utils/sendStatusEmail";
 
 
 export const config = {
@@ -32,30 +32,6 @@ export async function POST(req: Request) {
     console.error("❌ Webhook signature verification failed:", err.message);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
-
-  async function sendStatusEmail({
-    to,
-    subject,
-    html,
-  }: {
-    to: string | string[];
-    subject: string;
-    html: string;
-  }) {
-    try {
-      await sendEmail({
-        to,
-        from: `Fit Doctor <${process.env.NEXT_PUBLIC_EMAIL_FROM}>`,
-        subject,
-        html,
-      });
-    } catch (mailErr) {
-      console.error(`❌ Błąd wysyłania maila [${subject}]:`, mailErr);
-    }
-  }
-
-  const adminEmails =
-    process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").map((e) => e.trim()) || [];
 
   try {
     switch (event.type) {
@@ -151,13 +127,11 @@ export async function POST(req: Request) {
 
         if (email && session.mode !== "subscription") {
           await sendStatusEmail({ to: email, subject: userSubject, html: userHtml });
-          if (adminEmails.length > 0) {
-            await sendStatusEmail({
-              to: adminEmails,
-              subject: adminSubject,
-              html: adminHtml,
-            });
-          }
+          await sendStatusEmail({
+            toAdmins: true,
+            subject: adminSubject,
+            html: adminHtml,
+          });
         }
 
         break;
@@ -305,9 +279,7 @@ export async function POST(req: Request) {
         if (customerEmail) {
           await sendStatusEmail({ to: customerEmail, subject: userSubject, html: userHtml });
         }
-        if (adminEmails.length > 0) {
-          await sendStatusEmail({ to: adminEmails, subject: adminSubject, html: adminHtml });
-        }
+        await sendStatusEmail({ toAdmins: true, subject: adminSubject, html: adminHtml });
 
         break;
       }

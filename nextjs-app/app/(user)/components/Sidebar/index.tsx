@@ -20,6 +20,7 @@ const navItems = [
       { href: "/user/gym/progress", label: "Progres" },
     ],
   },
+  { href: "/user/profile", label: "Ustawienia" },
 ];
 
 export default function Sidebar() {
