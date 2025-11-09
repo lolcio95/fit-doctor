@@ -1,11 +1,9 @@
+import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
-import type { Prisma, OrderStatus } from "@prisma/client";
 
-const PAGE_SIZE = 20;
 const ALLOWED_STATUSES = ["TO_PROCESS", "PROCESSING", "PROCESSED"] as const;
-type AllowedStatus = typeof ALLOWED_STATUSES[number];
+type AllowedStatus = (typeof ALLOWED_STATUSES)[number];
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,34 +13,56 @@ export async function GET(req: NextRequest) {
     }
 
     const url = new URL(req.url);
-    const page = Math.max(1, Number(url.searchParams.get("page") ?? "1"));
-    const statusParam = url.searchParams.get("status") ?? "";
-    const skip = (page - 1) * PAGE_SIZE;
-    const take = PAGE_SIZE + 1;
+    const id = url.pathname.split("/").pop();
+    if (!id) return new NextResponse(JSON.stringify({ error: "Invalid id" }), { status: 400 });
 
-    let where: Prisma.PaymentWhereInput | undefined = undefined;
-    if (statusParam && ALLOWED_STATUSES.includes(statusParam as AllowedStatus)) {
-      where = { orderStatus: statusParam as unknown as OrderStatus };
-    }
-
-    const fetched = await prisma.payment.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take,
+    const payment = await prisma.payment.findUnique({
+      where: { id },
       include: {
         user: {
-          select: { id: true, name: true, email: true },
+          select: { id: true, name: true, email: true, image: true },
         },
       },
     });
 
-    const hasMore = fetched.length > PAGE_SIZE;
-    const orders = hasMore ? fetched.slice(0, PAGE_SIZE) : fetched;
+    if (!payment) return new NextResponse(JSON.stringify({ error: "Not found" }), { status: 404 });
 
-    return NextResponse.json({ orders, hasMore });
+    return NextResponse.json({ payment });
   } catch (err: any) {
-    console.error("GET /api/admin/orders error:", err);
+    console.error("GET /api/admin/orders/[id] error:", err);
+    return new NextResponse(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (!token || (token as any).role !== "ADMIN") {
+      return new NextResponse(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+    }
+
+    const url = new URL(req.url);
+    const id = url.pathname.split("/").pop();
+    if (!id) return new NextResponse(JSON.stringify({ error: "Invalid id" }), { status: 400 });
+
+    const body = await req.json();
+    const { orderStatus } = body as { orderStatus?: string };
+
+    if (!orderStatus || !ALLOWED_STATUSES.includes(orderStatus as AllowedStatus)) {
+      return new NextResponse(JSON.stringify({ error: "Invalid orderStatus" }), { status: 400 });
+    }
+
+    const updated = await prisma.payment.update({
+      where: { id },
+      data: { orderStatus: orderStatus as AllowedStatus },
+      include: {
+        user: { select: { id: true, name: true, email: true, image: true } },
+      },
+    });
+
+    return NextResponse.json({ payment: updated });
+  } catch (err: any) {
+    console.error("PATCH /api/admin/orders/[id] error:", err);
     return new NextResponse(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
   }
 }
