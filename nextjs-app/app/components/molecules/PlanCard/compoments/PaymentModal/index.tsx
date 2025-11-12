@@ -1,299 +1,233 @@
+"use client";
 import React, { useEffect, useState } from "react";
-import { Button } from "@/app/components/atoms/Button";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import ProfileForm from "@/app/(user)/user/info/edit/components/ProfileForm";
+import {
+  PhoneInputForm,
+  formatDisplayPhone,
+  normalizePhoneForSending,
+} from "@/app/(user)/user/profile/components/PhoneInputForm";
+import {
+  FormValues as PhoneFormValues,
+  schema as phoneSchema,
+} from "@/app/(user)/user/profile/components/PhoneInputForm/consts";
+import {
+  schema as infoSchema,
+  FormValues as InfoFormValues,
+} from "@/app/(user)/user/info/edit/components/ProfileForm/consts";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type PaymentModalProps = {
   isOpen: boolean;
   onClose: () => void;
   loading: boolean;
   error: string | null;
-  // phone is required now
-  onOneTime: (phone: string) => void | Promise<void>;
-  onSubscription: (phone: string) => void | Promise<void>;
+  onOneTime: () => void | Promise<void>;
+  onSubscription: () => void | Promise<void>;
 };
 
-type FormValues = {
-  email: string;
-  phone: string;
-};
-
-/**
- * Behavior:
- * - While typing allow leading '+' and preserve input for non-+48 codes (don't aggressively reformat).
- * - For +48 format as "+48 123 456 789".
- * - On submit validate only two accepted formats:
- *   * "+48 123 456 789"
- *   * "123 456 789"
- * - If no + provided on submit, assume +48 when normalizing for sending.
- */
-
-const group3 = (s: string) => {
-  if (!s) return "";
-  return s.match(/.{1,3}/g)?.join(" ") ?? s;
-};
-
-const formatDisplayPhone = (raw: string) => {
-  if (raw == null) return "";
-  const trimmed = raw.trim();
-
-  // preserve leading plus while typing, but format digits in groups of 3 for +48
-  const hasPlus = trimmed.startsWith("+");
-  const digitsOnly = trimmed.replace(/\D/g, "");
-
-  if (hasPlus) {
-    // If no digits yet, keep the plus so user can type it
-    if (!digitsOnly) return "+";
-
-    // If digits start with 48 -> format as Polish number
-    if (digitsOnly.startsWith("48")) {
-      const rest = digitsOnly.slice(2, 11); // up to 9 national digits
-      const groupedRest = group3(rest);
-      return `+48${groupedRest ? " " + groupedRest : ""}`;
-    }
-
-    // For other country codes: preserve user's spacing as much as possible.
-    // Remove any characters other than digits and spaces from the part after '+',
-    // collapse multiple spaces to single space and trim.
-    const afterPlus = raw
-      .replace(/^\+/, "") // remove leading + (we'll add it back)
-      .replace(/[^\d\s]/g, "") // keep only digits and spaces
-      .replace(/\s+/g, " ")
-      .trim();
-
-    return `+${afterPlus}`;
-  } else {
-    // national formatting: up to 9 digits grouped by 3
-    const national = digitsOnly.slice(0, 9);
-    return group3(national);
-  }
-};
-
-const normalizePhoneForSending = (
-  display: string | undefined
-): string | undefined => {
-  if (!display) return undefined;
-  const trimmed = display.trim();
-  if (!trimmed) return undefined;
-
-  // Remove spaces
-  const noSpaces = trimmed.replace(/\s+/g, "");
-  const hasPlus = noSpaces.startsWith("+");
-  const digits = noSpaces.replace(/\D/g, "");
-  if (!digits) return undefined;
-
-  if (hasPlus) {
-    // only accept +48... here because display validation enforces +48 if plus used
-    if (!digits.startsWith("48")) return undefined;
-    return `+${digits}`;
-  } else {
-    // assume Poland if no +
-    return `+48${digits}`;
-  }
-};
-
-// Accept either exactly +48 then 9 digits (spaces optional) or 9 digits (spaces optional).
-const phoneDisplayRegex =
-  /^(?:\+48\s?\d{3}\s?\d{3}\s?\d{3}|\d{3}\s?\d{3}\s?\d{3})$/;
-
-const PaymentModal: React.FC<PaymentModalProps> = ({
+export default function PaymentModal({
   isOpen,
   onClose,
   loading,
   error,
   onOneTime,
   onSubscription,
-}) => {
-  const [isDataLoading, setIsDataLoading] = useState(false);
+}: PaymentModalProps) {
+  const [isUserDataLoading, setIsUserDataLoading] = useState(false);
+  const [isUserSettingsLoading, setIsUserSettingLoading] = useState(false);
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [savingInfo, setSavingInfo] = useState(false);
+
+  // Formularze react-hook-form
   const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    defaultValues: { email: "", phone: "" },
-    // default react-hook-form mode is onSubmit, so validation will run on submit
-  });
-
-  const phoneValue = watch("phone");
-
-  // register validation rules for phone (required + exact format) — validation runs on submit
-  const phoneRegister = register("phone", {
-    required: "Numer telefonu jest wymagany",
-    validate: (value: string) => {
-      const v = (value ?? "").trim();
-      if (!v) return "Numer telefonu jest wymagany";
-      // Accept only two formats on submit: "+48 123 456 789" or "123 456 789"
-      if (!phoneDisplayRegex.test(v)) {
-        return "Numer telefonu może być napisany tylko w takim formacie +48 123 456 789 lub 123 456 789";
-      }
-      return true;
+    control: infoControl,
+    handleSubmit: handleInfoSubmit,
+    formState: {
+      errors: infoErrors,
+      isSubmitting: isInfoSubmitting,
+      isDirty: isInfoDirty,
+      isValid: isInfoValid,
     },
+    reset: resetInfo,
+  } = useForm<InfoFormValues>({
+    resolver: zodResolver(infoSchema),
   });
 
-  useEffect(() => {
-    if (!isOpen) {
-      reset();
-      return;
-    }
+  const {
+    control: phoneControl,
+    handleSubmit: handlePhoneSubmit,
+    formState: {
+      errors: phoneErrors,
+      isSubmitting: isPhoneSubmitting,
+      isDirty: isPhoneDirty,
+      isValid: isPhoneValid,
+    },
+    setValue: setPhoneValue,
+  } = useForm<PhoneFormValues>({
+    mode: "onSubmit",
+    resolver: zodResolver(phoneSchema),
+  });
 
-    const abortController = new AbortController();
-    setIsDataLoading(true);
-    fetch("/api/user/me", { signal: abortController.signal })
-      .then((res) => res.json())
+  // Pobieranie danych użytkownika
+  useEffect(() => {
+    if (!isOpen) return;
+    setIsUserDataLoading(true);
+    setIsUserSettingLoading(true);
+    fetch("/api/user/info")
+      .then((r) => r.json())
       .then((data) => {
         if (data) {
-          setValue("email", data.email ?? "");
-          setValue("phone", data.phone ? formatDisplayPhone(data.phone) : "");
+          resetInfo({
+            sex: data.sex ?? "",
+            birthDate: data.birthDate?.slice(0, 10) ?? "",
+            weight: data.weights?.[data.weights.length - 1]?.weight ?? "",
+            height: data.height ?? "",
+            goal: data.goal ?? "",
+            activityLevel: data.activityLevel ?? "",
+          });
         }
       })
-      .catch((err) => {
-        console.warn("Unable to fetch user data for PaymentModal:", err);
-      })
-      .finally(() => {
-        setIsDataLoading(false);
-      });
+      .finally(() => setIsUserDataLoading(false));
 
-    return () => abortController.abort();
-  }, [isOpen, reset, setValue]);
+    fetch("/api/user/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.phone) {
+          setPhoneValue("phone", formatDisplayPhone(data.phone) ?? "", {
+            shouldValidate: true,
+          });
+        }
+      })
+      .finally(() => setIsUserSettingLoading(false));
+  }, [isOpen, resetInfo, setPhoneValue]);
+
+  const onSubmitPhone = handlePhoneSubmit(async (data: { phone: string }) => {
+    setSavingPhone(true);
+    setPhoneError(null);
+    try {
+      const normalized = normalizePhoneForSending(data.phone);
+      if (!normalized) throw new Error("Niepoprawny numer telefonu");
+      const res = await fetch("/api/user/change-phone-number", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: normalized }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "Błąd podczas zapisu numeru");
+      // setUserPhone((prev: any) => (json?.phone));
+      console.log("user 1 phone json: ", json);
+    } catch (err: any) {
+      setPhoneError(err.message);
+    } finally {
+      setSavingPhone(false);
+    }
+  });
+
+  const onSubmitInfo = handleInfoSubmit(async (data) => {
+    setSavingInfo(true);
+    try {
+      const res = await fetch("/api/user/info", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Błąd podczas zapisu danych użytkownika");
+    } catch (err) {
+      alert("Wystąpił błąd podczas zapisu danych użytkownika");
+    } finally {
+      setSavingInfo(false);
+    }
+  });
+
+  const handleOneTimePayment = async () => {
+    await onSubmitInfo();
+    await onSubmitPhone();
+    if (isInfoValid && isPhoneValid) {
+      onOneTime();
+    }
+  };
+
+  const handleSubscriptionPayment = async () => {
+    await onSubmitInfo();
+    await onSubmitPhone();
+    if (isInfoValid && isPhoneValid) {
+      onSubscription();
+    }
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="w-full max-w-md rounded-lg bg-background-card p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-bold">Wybierz metodę płatności</h4>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-lg bg-background-card rounded-lg shadow-lg py-7 h-full overflow-y-scroll lg:overflow-y-auto lg:h-auto px-3 lg:px-6">
+        <div className="flex justify-between items-center mb-4">
+          <h4 className="text-lg font-bold">Uzupełnij dane przed płatnością</h4>
           <button
             onClick={onClose}
-            aria-label="Zamknij"
-            className="text-color-tertiary hover:opacity-80"
-            disabled={loading || isSubmitting}
+            className="text-gray-500 hover:text-gray-800"
+            disabled={loading}
           >
             ✕
           </button>
         </div>
 
-        <p className="text-sm text-color-primary mb-4">
-          Możesz zapłacić jednorazowo lub wykupić comiesięczną subskrypcję.
-        </p>
-        {isDataLoading ? (
-          <div className="flex items-center justify-center w-full">
-            <Loader2 className="animate-spin text-color-tertiary" />
+        {isUserDataLoading || isUserSettingsLoading ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="animate-spin text-gray-400" />
           </div>
         ) : (
-          <form className="mb-4" onSubmit={(e) => e.preventDefault()}>
-            <div className="mb-4 space-y-2">
-              <label className="text-xs text-color-tertiary">Email</label>
-              <input
-                className="w-full rounded p-2 bg-gray-600 text-sm"
-                {...register("email")}
-                disabled
-                readOnly
-              />
+          <div className="space-y-8">
+            <ProfileForm
+              control={infoControl}
+              errors={infoErrors}
+              isSubmitting={savingInfo}
+              changed={true}
+              onCancel={() => onClose()}
+              className="p-0"
+            />
 
-              <label className="text-xs text-color-tertiary mt-2">
-                Numer telefonu (wymagany)
-              </label>
-              <input
-                className="w-full rounded p-2 text-sm border"
-                {...phoneRegister}
-                value={phoneValue ?? ""}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  // Format input live and preserve leading '+' while typing.
-                  // IMPORTANT: do not validate during typing -> shouldValidate: false
-                  const formatted = formatDisplayPhone(raw);
-                  setValue("phone", formatted, {
-                    shouldValidate: false,
-                    shouldDirty: true,
-                  });
-                }}
-                placeholder="+48 123 456 789 lub 123 456 789"
-                inputMode="tel"
-              />
-              {errors.phone && (
-                <p className="text-red-600 text-sm mt-1">
-                  {errors.phone.message as string}
-                </p>
-              )}
-            </div>
-
-            {error && (
-              <div className="mb-4 rounded-md bg-red-100 p-3 text-sm text-red-700">
-                {error}
-              </div>
+            <PhoneInputForm
+              control={phoneControl}
+              errors={phoneErrors}
+              disabled={savingPhone}
+            />
+            {phoneError && (
+              <p className="text-red-600 text-sm mt-2">{phoneError}</p>
             )}
 
-            <div className="space-y-3">
-              <div className="flex flex-col gap-2">
-                <Button
-                  text={
-                    loading || isSubmitting
-                      ? "Przekierowuję..."
-                      : "Płatność jednorazowa"
-                  }
-                  className="w-full"
-                  variant="default"
-                  onClick={handleSubmit(({ phone }) => {
-                    // phone validation runs here (on submit). normalize and send
-                    const normalized = normalizePhoneForSending(phone);
-                    if (!normalized) {
-                      // fallback safety
-                      // eslint-disable-next-line no-alert
-                      alert(
-                        "Niepoprawny numer telefonu. Numer telefonu może być napisany tylko w takim formacie +48 123 456 789 lub 123 456 789"
-                      );
-                      return;
-                    }
-                    void onOneTime(normalized);
-                  })}
-                  disabled={loading || isSubmitting}
-                />
-                <Button
-                  text={
-                    loading || isSubmitting
-                      ? "Przekierowuję..."
-                      : "Płatność cykliczna (subskrypcja)"
-                  }
-                  className="w-full"
-                  variant={"outline"}
-                  onClick={handleSubmit(({ phone }) => {
-                    const normalized = normalizePhoneForSending(phone);
-                    if (!normalized) {
-                      // eslint-disable-next-line no-alert
-                      alert(
-                        "Niepoprawny numer telefonu. Numer telefonu może być napisany tylko w takim formacie +48 123 456 789 lub 123 456 789"
-                      );
-                      return;
-                    }
-                    void onSubscription(normalized);
-                  })}
-                  disabled={loading || isSubmitting}
-                />
-              </div>
+            <div className="space-y-4">
+              {error && (
+                <div className="bg-red-100 text-red-700 p-3 rounded text-sm">
+                  {error}
+                </div>
+              )}
+              <p className="text-sm font-bold text-color-tertiary">
+                Możesz zapłacić jednorazowo lub wykupić subskrypcję.
+              </p>
 
-              <div className="mt-2 text-right">
-                <button
-                  onClick={onClose}
-                  className="text-sm text-color-tertiary underline"
-                  disabled={loading || isSubmitting}
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={handleOneTimePayment}
+                  disabled={loading || isInfoSubmitting || isPhoneSubmitting}
                 >
-                  Anuluj
-                </button>
+                  Płatność jednorazowa
+                </Button>
+                <Button
+                  onClick={handleSubscriptionPayment}
+                  disabled={loading || isInfoSubmitting || isPhoneSubmitting}
+                  variant="outline"
+                >
+                  Płatność cykliczna (subskrypcja)
+                </Button>
               </div>
             </div>
-          </form>
+          </div>
         )}
       </div>
     </div>
   );
-};
-
-export default PaymentModal;
+}

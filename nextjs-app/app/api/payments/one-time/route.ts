@@ -16,21 +16,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Brak autoryzacji." }, { status: 401 });
   }
 
-  const { priceId, email, phone } = await req.json();
+  const { priceId } = await req.json();
+
+  if (!priceId || typeof priceId !== "string") {
+    return NextResponse.json({ error: "Brak priceId." }, { status: 400 });
+  }
+
+  const email = serverSession.user.email;
 
   try {
-    if (phone) {
-      try {
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser && existingUser.phone !== phone) {
-          await prisma.user.update({
-            where: { email },
-            data: { phone },
-          });
-        }
-      } catch (err) {
-        console.warn("Unable to update user phone:", err);
-      }
+    let phone = "";
+    try {
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+        select: { phone: true },
+      });
+      phone = existingUser?.phone ?? "";
+    } catch (dbErr) {
+      console.warn("Unable to read user phone from DB:", dbErr);
     }
 
     const base = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") || "http://localhost:3000";

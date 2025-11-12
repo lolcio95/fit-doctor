@@ -5,8 +5,8 @@ import { List, Clipboard, TrendingUp } from "lucide-react";
 
 export default function GymPage() {
   return (
-    <section className="bg-background-primary py-16 px-0 lg:px-4">
-      <div className="max-w-4xl mx-auto">
+    <section className="bg-background-primary py-16">
+      <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-color-secondary mb-6">
           Moja siłownia
         </h1>

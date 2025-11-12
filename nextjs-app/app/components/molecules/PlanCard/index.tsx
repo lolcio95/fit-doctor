@@ -111,8 +111,6 @@ export const PlanCard = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           priceId,
-          email: sessionData?.user?.email,
-          phone,
         }),
       });
 
@@ -139,7 +137,7 @@ export const PlanCard = ({
     }
   };
 
-  const handleOneTimePurchase = async (phone?: string) => {
+  const handleOneTimePurchase = async () => {
     setModalError(null);
     setModalLoading(true);
 
@@ -149,9 +147,7 @@ export const PlanCard = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           priceId: priceIdOneTime,
-          email: sessionData?.user?.email,
           quantity: 1,
-          phone,
         }),
       });
 
@@ -310,10 +306,8 @@ export const PlanCard = ({
         onClose={closeModal}
         loading={modalLoading}
         error={modalError}
-        onOneTime={(phone?: string) => void handleOneTimePurchase(phone)}
-        onSubscription={(phone?: string) =>
-          void handleSubscriptionPurchase(phone)
-        }
+        onOneTime={handleOneTimePurchase}
+        onSubscription={handleSubscriptionPurchase}
       />
 
       <ConfirmModal

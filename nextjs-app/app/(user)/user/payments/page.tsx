@@ -145,7 +145,7 @@ export default function PaymentsPage() {
 
   return (
     <section className="min-h-screen bg-background-primary py-16 px-0 lg:px-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
         <header>
           <h1 className="text-3xl font-bold text-color-secondary">
             Płatności i zakupy
