@@ -112,6 +112,10 @@ export default function ProfilePage() {
     }
   };
 
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
   const {
     control,
     handleSubmit,
