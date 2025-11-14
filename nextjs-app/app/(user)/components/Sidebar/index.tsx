@@ -10,6 +10,7 @@ import { signOut } from "next-auth/react";
 
 const navItems = [
   { href: "/user", label: "Panel użytkownika" },
+  { href: "/user/info", label: "Informacje" },
   {
     label: "Siłownia",
     key: "gym",
@@ -50,21 +51,18 @@ export default function Sidebar() {
     };
   }, [mobileOpen]);
 
-  // close when clicking outside panel (mobile)
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (!mobileOpen) return;
 
-      // jeśli kliknięto w panel => nic
       if (panelRef.current && panelRef.current.contains(e.target as Node)) {
         return;
       }
-      // jeśli kliknięto w toggle (hamburger) => nic, bo on sam przełącza stan
+
       if (toggleRef.current && toggleRef.current.contains(e.target as Node)) {
         return;
       }
 
-      // w przeciwnym razie zamykamy panel
       setMobileOpen(false);
     };
     document.addEventListener("mousedown", onClick);

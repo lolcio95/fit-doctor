@@ -75,8 +75,8 @@ export default function DashboardPage() {
   const avatarSrc = sessionData?.user?.image ?? undefined;
 
   return (
-    <section className="bg-background-primary py-16 px-4 lg:px-8">
-      <div className="max-w-5xl mx-auto grid grid-cols-1 xl:grid-cols-4 gap-8">
+    <section className="bg-background-primary py-16 px-4">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Sidebar */}
         <aside className="col-span-1 bg-background-card rounded-2xl p-6 flex flex-col items-center gap-4">
           <div className="w-28 h-28 rounded-full overflow-hidden bg-muted-foreground/10">
@@ -108,6 +108,12 @@ export default function DashboardPage() {
 
           <div className="w-full mt-4">
             <nav className="flex flex-col gap-2 items-center">
+              <Link
+                href="/user/info"
+                className="w-full max-w-[300px] block text-center xl:text-left px-4 py-2 rounded-md hover:bg-background-primary/10 transition-colors"
+              >
+                Informacje
+              </Link>
               <Link
                 href="/user/profile"
                 className="w-full max-w-[300px] block text-center xl:text-left px-4 py-2 rounded-md hover:bg-background-primary/10 transition-colors"

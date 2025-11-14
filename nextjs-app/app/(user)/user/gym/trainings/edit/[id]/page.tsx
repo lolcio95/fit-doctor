@@ -9,6 +9,7 @@ import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { DateInput } from "@/app/components/atoms/DateInput";
 
 type TrainingExerciseForm = {
   exerciseId: string;
@@ -477,12 +478,11 @@ export default function EditTrainingPage() {
               <div className="text-sm text-color-tertiary mb-1">
                 Data treningu
               </div>
-              <input
+              <DateInput
                 {...register("date")}
-                type="date"
                 max={new Date().toISOString().split("T")[0]}
                 required
-                className="w-full px-3 py-2 rounded-lg border bg-transparent focus:outline-none focus:ring-2 focus:ring-color-primary"
+                className="w-full px-3 py-1.5 rounded-lg border bg-transparent focus:outline-none focus:ring-2 focus:ring-color-primary"
               />
             </label>
 

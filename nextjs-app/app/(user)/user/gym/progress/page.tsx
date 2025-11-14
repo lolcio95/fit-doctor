@@ -91,7 +91,7 @@ export default function ProgressPage() {
   }, []);
 
   return (
-    <section className="bg-background-primary py-16 px-4 lg:px-8">
+    <section className="bg-background-primary py-16">
       <div className="max-w-6xl mx-auto">
         <header className="mb-8 flex items-center gap-4">
           <TrendingUp className="w-6 h-6 text-color-primary" />

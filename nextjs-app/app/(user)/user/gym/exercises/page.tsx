@@ -27,7 +27,7 @@ export default function ExercisesPage() {
   }, []);
 
   return (
-    <section className="bg-background-primary py-16 px-0 lg:px-4">
+    <section className="bg-background-primary py-16 px-0">
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-color-secondary flex items-center gap-3">

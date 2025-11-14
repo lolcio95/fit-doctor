@@ -7,9 +7,17 @@ import ProfilePasswordForm from "./components/ProfilePasswordForm";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import PhoneInput, { formatDisplayPhone } from "./components/PhoneInputForm";
+import {
+  PhoneInputForm,
+  formatDisplayPhone,
+} from "./components/PhoneInputForm";
 import { Button } from "@/app/components/atoms/Button";
 import { NotificationsToggler } from "./components/NotificationsToggler";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  FormValues as PhoneFormData,
+  schema as phoneSchema,
+} from "./components/PhoneInputForm/consts";
 
 type FetchedUser = {
   name?: string | null;
@@ -108,28 +116,29 @@ export default function ProfilePage() {
     fetchSettings();
   }, []);
 
-  // react-hook-form to validate and manage phone
-  const { register, handleSubmit, setValue, watch, formState } = useForm<{
-    phone: string;
-  }>({
-    defaultValues: { phone: "" },
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<PhoneFormData>({
+    resolver: zodResolver(phoneSchema),
     mode: "onSubmit",
   });
 
-  // when userMeta loads, set phone field formatted
   useEffect(() => {
     if (userMeta?.phone) {
-      setValue("phone", formatDisplayPhone(userMeta.phone));
-    } else {
-      setValue("phone", "");
+      setValue(
+        "phone",
+        userMeta?.phone ? formatDisplayPhone(userMeta.phone) : "",
+        { shouldValidate: true }
+      );
     }
   }, [userMeta?.phone, setValue]);
 
-  const phoneValue = watch("phone");
-
-  const onSavePhone = async (data: { phone: string }) => {
-    setPhoneError(null);
+  const onSubmit = async (data: { phone: string }) => {
     setSavingPhone(true);
+    setPhoneError(null);
     try {
       const res = await fetch("/api/user/change-phone-number", {
         method: "POST",
@@ -137,14 +146,14 @@ export default function ProfilePage() {
         body: JSON.stringify({ phone: data.phone }),
       });
       const json = await res.json();
+
       if (!res.ok) {
         setPhoneError(json?.error || "Błąd podczas zapisywania numeru");
       } else {
-        // update local state
         setUserMeta((prev) => ({ ...(prev ?? {}), phone: json?.user?.phone }));
       }
     } catch (err) {
-      console.error("save phone error", err);
+      console.error(err);
       setPhoneError("Błąd podczas zapisywania numeru");
     } finally {
       setSavingPhone(false);
@@ -152,8 +161,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <section className="min-h-screen bg-background-primary py-16 px-4 lg:px-8">
-      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <section className="bg-background-primary py-16">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
         <main className="col-span-1 lg:col-span-3 space-y-6">
           <div>
             <h1 className="text-3xl font-bold text-color-secondary">
@@ -284,31 +293,10 @@ export default function ProfilePage() {
                 {loadingUserMeta ? (
                   <p className="text-sm text-color-tertiary">Ładowanie…</p>
                 ) : (
-                  <form
-                    onSubmit={handleSubmit(onSavePhone)}
-                    className="space-y-3"
-                  >
-                    <PhoneInput
-                      value={phoneValue}
-                      onChange={(v) =>
-                        setValue("phone", v, { shouldDirty: true })
-                      }
-                      register={register("phone", {
-                        required: "Numer telefonu jest wymagany",
-                        validate: (value) => {
-                          const v = (value ?? "").trim();
-                          if (!v) return "Numer telefonu jest wymagany";
-                          if (
-                            !/^(?:\+48\s?\d{3}\s?\d{3}\s?\d{3}|\d{3}\s?\d{3}\s?\d{3})$/.test(
-                              v
-                            )
-                          ) {
-                            return "Numer telefonu może być napisany tylko w takim formacie +48 123 456 789 lub 123 456 789";
-                          }
-                          return true;
-                        },
-                      })}
-                      errors={formState.errors}
+                  <div className="space-y-3">
+                    <PhoneInputForm
+                      control={control}
+                      errors={errors}
                       disabled={savingPhone}
                     />
 
@@ -317,31 +305,28 @@ export default function ProfilePage() {
                         {phoneError}
                       </div>
                     )}
-
-                    <div className="flex gap-2">
+                    <div>
                       <Button
-                        type="submit"
-                        variant="default"
-                        text={savingPhone ? "Zapisuję..." : "Zapisz numer"}
+                        onClick={handleSubmit(onSubmit)}
                         disabled={savingPhone}
+                        text={savingPhone ? "Zapisuję..." : "Zapisz numer"}
                       />
                       <Button
-                        type="button"
                         text="Przywróć"
                         variant="ghost"
-                        onClick={() => {
+                        type="button"
+                        className="text-sm text-color-primary underline"
+                        onClick={() =>
                           setValue(
                             "phone",
                             userMeta?.phone
                               ? formatDisplayPhone(userMeta.phone)
                               : ""
-                          );
-                          setPhoneError(null);
-                        }}
-                        disabled={savingPhone}
+                          )
+                        }
                       />
                     </div>
-                  </form>
+                  </div>
                 )}
               </div>
             </div>
