@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import ProfileForm from "@/app/(user)/user/info/edit/components/ProfileForm";
 import {
   PhoneInputForm,
-  formatDisplayPhone,
   normalizePhoneForSending,
 } from "@/app/(user)/user/profile/components/PhoneInputForm";
+import { formatDisplayPhone } from "@/app/(user)/user/profile/components/PhoneInputForm/utils";
 import {
   FormValues as PhoneFormValues,
   schema as phoneSchema,

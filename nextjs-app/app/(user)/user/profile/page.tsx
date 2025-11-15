@@ -7,10 +7,8 @@ import ProfilePasswordForm from "./components/ProfilePasswordForm";
 import { ButtonLink } from "@/app/components/atoms/ButtonLink";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import {
-  PhoneInputForm,
-  formatDisplayPhone,
-} from "./components/PhoneInputForm";
+import { PhoneInputForm } from "./components/PhoneInputForm";
+import { formatDisplayPhone } from "./components/PhoneInputForm/utils";
 import { Button } from "@/app/components/atoms/Button";
 import { NotificationsToggler } from "./components/NotificationsToggler";
 import { zodResolver } from "@hookform/resolvers/zod";
