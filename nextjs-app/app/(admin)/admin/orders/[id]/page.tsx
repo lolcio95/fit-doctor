@@ -11,6 +11,8 @@ import { GOAL_OPTIONS } from "@/app/consts/userInfo";
 import { formatDisplayPhone } from "@/app/(user)/user/profile/components/PhoneInputForm/utils";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/authOptions";
+import AdminFilesManager from "./components/AdminFilesManager";
+import AdminNotesManager from "./components/AdminNotesManager";
 
 type Props = {
   params: Promise<any> | undefined;
@@ -239,7 +241,6 @@ export default async function OrderDetailsPage({ params }: Props) {
                   <div className="mt-6">
                     <h3 className="text-sm font-medium mb-2">Historia wagi</h3>
                     <div className="bg-background-card w-full relative overflow-hidden">
-                      {/* WeightChart jest komponentem klienckim */}
                       <WeightChart weights={weights} />
                     </div>
                   </div>
@@ -252,10 +253,17 @@ export default async function OrderDetailsPage({ params }: Props) {
             </div>
           </div>
 
-          <div className="bg-background-card p-4 rounded-lg shadow-sm">
-            <h3 className="text-sm font-medium mb-2">Dodatkowe informacje</h3>
-            <div className="text-sm text-gray-600">
-              Tutaj możesz dodać logi, notatki lub akcje powiązane z paymentem.
+          <div className="bg-background-card px-4 py-7 rounded-lg shadow-sm">
+            <div className="bg-background-card rounded-lg shadow-sm">
+              <h3 className="text-sm font-medium mb-2">
+                Pliki powiązane z zamówieniem
+              </h3>
+              <div>
+                <AdminFilesManager paymentId={payment.id} />
+              </div>
+            </div>
+            <div className="mt-12 p-4 rounded bg-background-secondary">
+              <AdminNotesManager paymentId={payment.id} />
             </div>
           </div>
         </div>
