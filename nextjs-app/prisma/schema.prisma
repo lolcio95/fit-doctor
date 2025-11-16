@@ -175,7 +175,22 @@ model Payment {
   metadata    Json?
   notes       String?
   orderStatus OrderStatus @default(TO_PROCESS)
+  files       PaymentFile[]
 
   @@index([userId])
   @@index([email])
+}
+
+model PaymentFile {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  payment    Payment  @relation(fields: [paymentId], references: [id])
+  paymentId  String   @db.ObjectId
+  key        String   @unique
+  filename   String
+  mimetype   String?
+  size       Int?
+  uploadedBy String?  // user id who uploaded
+  createdAt  DateTime @default(now())
+
+  @@index([paymentId])
 }
