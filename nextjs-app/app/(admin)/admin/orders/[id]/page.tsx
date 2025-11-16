@@ -12,6 +12,7 @@ import { formatDisplayPhone } from "@/app/(user)/user/profile/components/PhoneIn
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/authOptions";
 import AdminFilesManager from "./components/AdminFilesManager";
+import AdminNotesManager from "./components/AdminNotesManager";
 
 type Props = {
   params: Promise<any> | undefined;
@@ -260,6 +261,9 @@ export default async function OrderDetailsPage({ params }: Props) {
               <div>
                 <AdminFilesManager paymentId={payment.id} />
               </div>
+            </div>
+            <div className="mt-12 p-4 rounded bg-background-secondary">
+              <AdminNotesManager paymentId={payment.id} />
             </div>
           </div>
         </div>
