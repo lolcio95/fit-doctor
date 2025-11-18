@@ -100,9 +100,9 @@ export default async function OrderDetailsPage({ params }: Props) {
         </Link>
       </nav>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-7 gap-6">
         {/* Left: user card */}
-        <aside className="col-span-2 xl:col-span-1 bg-background-card p-4 rounded-lg shadow-sm">
+        <aside className="col-span-7 xl:col-span-2 bg-background-card p-4 rounded-lg shadow-sm">
           <div className="flex flex-col items-center gap-3">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-muted-foreground/10">
               <NextImage
@@ -116,11 +116,15 @@ export default async function OrderDetailsPage({ params }: Props) {
 
             <div className="text-center">
               <div className="text-lg font-semibold">{user?.name ?? "—"}</div>
-              <div className="text-sm text-gray-300 break-words">
-                {userData?.email ?? user?.email ?? "—"}
+              <div className="text-sm text-blue-400 break-words my-3.5">
+                <Link href={`mailto:${userData?.email}`}>
+                  {userData?.email ?? user?.email ?? "—"}
+                </Link>
               </div>
               <div className="text-sm text-blue-400 break-words">
-                {userData?.phone && formatDisplayPhone(userData.phone)}
+                <Link href={`tel:${userData?.phone}`}>
+                  {userData?.phone && formatDisplayPhone(userData.phone)}
+                </Link>
               </div>
             </div>
           </div>
@@ -132,7 +136,7 @@ export default async function OrderDetailsPage({ params }: Props) {
         </aside>
 
         {/* Right: payment details */}
-        <div className="col-span-2 space-y-4">
+        <div className="col-span-7 xl:col-span-5 space-y-4">
           <div className="bg-background-card p-4 rounded-lg shadow-sm">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div className="flex-1 min-w-0">
@@ -152,7 +156,6 @@ export default async function OrderDetailsPage({ params }: Props) {
                     {payment.currency ?? ""}
                   </div>
                 </div>
-
                 <div className="w-40 sm:w-auto">
                   <PaymentStatusSelect
                     initialStatus={payment.orderStatus ?? "TO_PROCESS"}

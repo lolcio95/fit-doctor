@@ -166,7 +166,7 @@ export default function PaymentHistory({ userId, currentId }: Props) {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">{renderCounts()}</div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2 flex-col">
             <label htmlFor="ph-status" className="text-xs text-color-tertiary">
               Filtr
             </label>
@@ -249,7 +249,7 @@ export default function PaymentHistory({ userId, currentId }: Props) {
                 <li key={p.id}>
                   <Link
                     href={`/admin/orders/${p.id}`}
-                    className={`flex items-center justify-between px-3 py-2 rounded-md hover:bg-background-secondary transition ${isActive ? "bg-background-secondary" : "border border-transparent"}`}
+                    className={`flex items-center justify-between px-3 py-2 rounded-md hover:bg-background-secondary transition ${isActive ? "bg-background-primary" : "border border-transparent"}`}
                   >
                     <div className="min-w-0">
                       <div className="text-sm font-medium truncate">
