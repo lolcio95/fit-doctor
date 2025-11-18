@@ -11,6 +11,7 @@ import { signOut } from "next-auth/react";
 const navItems = [
   { href: "/user", label: "Panel użytkownika" },
   { href: "/user/info", label: "Informacje" },
+  { href: "/user/plans", label: "Moje plany" },
   {
     label: "Siłownia",
     key: "gym",

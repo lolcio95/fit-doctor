@@ -143,7 +143,9 @@ export default function ProfileForm({
               <select
                 className="px-3 py-2 border rounded-md text-sm border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 {...field}
+                value={field.value ?? ""}
               >
+                <option value="">-- Wybierz cel --</option>
                 {GOAL_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -169,7 +171,9 @@ export default function ProfileForm({
               <select
                 className="px-3 py-2 border rounded-md text-sm border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 {...field}
+                value={field.value ?? ""}
               >
+                <option value="">-- Wybierz aktywność --</option>
                 {(Object.keys(ACTIVITY_OPTIONS) as ActivityValue[]).map((v) => (
                   <option key={v} value={v}>
                     {ACTIVITY_OPTIONS[v]}

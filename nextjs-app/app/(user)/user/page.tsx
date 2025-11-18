@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const avatarSrc = sessionData?.user?.image ?? undefined;
 
   return (
-    <section className="bg-background-primary py-16 px-4">
+    <section className="bg-background-primary py-16">
       <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Sidebar */}
         <aside className="col-span-1 bg-background-card rounded-2xl p-6 flex flex-col items-center gap-4">
